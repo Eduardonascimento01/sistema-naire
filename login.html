@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso - ONG NAIRE</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #e9ecef; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-caixa { background: white; padding: 50px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 450px; }
+        .logo-ong { width: 350px; height: auto; margin-bottom: 20px; }
+        h1 { color: #333; font-size: 32px; margin-bottom: 30px; }
+        input { width: 100%; padding: 18px; margin-bottom: 25px; border: 2px solid #ccc; border-radius: 10px; font-size: 20px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; padding: 18px; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-size: 22px; font-weight: bold; transition: 0.3s; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+    <div class="login-caixa">
+        <img src="Logo.jpeg" alt="Logo Instituto NAIRE" class="logo-ong">
+        
+        <h1>Acesso Restrito</h1>
+
+        <form id="formLogin">
+            <input type="text" id="usuario" placeholder="Usuário" required>
+            <input type="password" id="senha" placeholder="Senha" required>
+            <button type="submit">Entrar no Sistema</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('formLogin').addEventListener('submit', async function(evento) {
+            evento.preventDefault();
+            const usuarioDigitado = document.getElementById('usuario').value;
+            const senhaDigitada = document.getElementById('senha').value;
+
+            try {
+                const resposta = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario: usuarioDigitado, senha: senhaDigitada })
+                });
+
+                if (resposta.ok) {
+                    alert('✅ Login correto! Entrando no sistema...');
+                    window.location.href = 'cadastro.html'; // Pula para a ficha!
+                } else {
+                    alert('❌ Ops! Usuário ou senha incorretos.');
+                }
+            } catch (erro) {
+                alert('Erro ao conectar. O servidor do VS Code está ligado?');
+            }
+        });
+    </script>
+</body>
+</html>

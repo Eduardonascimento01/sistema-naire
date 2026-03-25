@@ -152,5 +152,19 @@
             }
         });
     </script>
+    <script>
+        // Pega o nome do voluntário que o login.html salvou no navegador
+        const nomeLogado = localStorage.getItem('nomeVoluntario');
+        
+        // Se o cara tentou entrar direto no cadastro.html sem fazer login, a gente chuta ele pro login!
+        if (!nomeLogado) {
+            alert('Acesso negado. Por favor, faça login primeiro.');
+            window.location.href = 'login.html';
+        } else {
+            // Se ele logou direitinho, a gente coloca o nome dele no topo da tela!
+            const h2 = document.querySelector('h2');
+            h2.innerHTML = `Ficha de Cadastro - NAIRE <br> <span style="font-size: 14px; color: #007bff;">Bem-vindo(a), ${nomeLogado}</span>`;
+        }
+    </script>
 </body>
 </html>

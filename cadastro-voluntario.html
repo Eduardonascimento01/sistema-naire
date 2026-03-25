@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Equipe - ONG NAIRE</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .formulario-caixa { background: white; padding: 30px; border-radius: 10px; max-width: 400px; margin: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        label { font-weight: bold; margin-top: 10px; display: block; color: #555; font-size: 14px; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .btn-salvar { background-color: #0056b3; color: white; padding: 15px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
+        .btn-salvar:hover { background-color: #004494; }
+    </style>
+</head>
+<body>
+
+    <div class="formulario-caixa">
+        <h2>Cadastrar Voluntário</h2>
+        
+        <form id="formEquipe">
+            <label>Nome Completo:</label>
+            <input type="text" id="nome" placeholder="Ex: Maria Silva" required>
+
+            <label>Nome de Usuário (Login):</label>
+            <input type="text" id="usuario" placeholder="Ex: maria.silva" required>
+
+            <label>Senha (Máx 11 caracteres):</label>
+            <input type="password" id="senha" maxlength="11" placeholder="Digite a senha" required>
+
+            <label>Nível de Acesso:</label>
+            <label>Nível de Acesso:</label>
+            <select id="nivel_acesso">
+                <option value="voluntario" selected>Voluntário (Apenas cadastra)</option>
+                
+                <option value="admin">Administrador (Pode tudo)</option>
+            </select>
+
+            <button type="submit" class="btn-salvar">Salvar Membro da Equipe</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('formEquipe').addEventListener('submit', async function(evento) {
+            evento.preventDefault();
+
+            // Pega os dados digitados na tela
+            const dadosVoluntario = {
+                nome: document.getElementById('nome').value,
+                usuario: document.getElementById('usuario').value,
+                senha: document.getElementById('senha').value,
+                nivel_acesso: document.getElementById('nivel_acesso').value
+            };
+
+            try {
+                // Envia para o nosso servidor Node.js
+                const resposta = await fetch('http://localhost:3000/cadastrar-voluntario', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dadosVoluntario)
+                });
+
+                if (resposta.ok) {
+                    alert('✅ Voluntário cadastrado com sucesso e senha criptografada!');
+                    document.getElementById('formEquipe').reset(); // Limpa a tela
+                } else {
+                    const erro = await resposta.json();
+                    alert('Ops: ' + erro.erro);
+                }
+            } catch (erro) {
+                alert('Erro de conexão. O servidor (nodemon) está ligado?');
+            }
+        });
+    </script>
+</body>
+</html>

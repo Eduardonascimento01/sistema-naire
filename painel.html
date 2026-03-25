@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel - ONG NAIRE</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .painel-caixa { background: white; padding: 30px; border-radius: 10px; max-width: 950px; margin: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { color: #333; display: flex; justify-content: space-between; align-items: center; }
+        .btn-sair { background-color: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px;}
+        .btn-novo { background-color: #28a745; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px;}
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+
+        /* Estilo dos novos botões de ação */
+        .btn-acao { padding: 6px 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; margin-right: 5px; color: white; }
+        .btn-editar { background-color: #ffc107; color: #333; }
+        .btn-editar:hover { background-color: #e0a800; }
+        .btn-apagar { background-color: #dc3545; }
+        .btn-apagar:hover { background-color: #c82333; }
+    </style>
+</head>
+<body>
+
+    <div class="painel-caixa">
+        <h2>
+            Famílias Cadastradas
+            <div>
+                <a href="cadastro.html" class="btn-novo">+ Novo Cadastro</a>
+                <button onclick="sairDoSistema()" class="btn-sair">Sair</button>
+            </div>
+        </h2>
+        
+        <p id="mensagem-boas-vindas"></p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome da Responsável</th>
+                    <th>CPF</th>
+                    <th>Telefone</th>
+                    <th>Filhos</th>
+                    <th style="text-align: center;">Ações</th> </tr>
+            </thead>
+            <tbody id="tabela-familias">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        // 1. SEGURANÇA E CRACHÁ
+        const nomeLogado = localStorage.getItem('nomeVoluntario');
+        const nivelAcesso = localStorage.getItem('nivelAcesso'); // Pegamos o nível do crachá!
+
+        if (!nomeLogado) {
+            alert('Acesso negado! Faça login para ver o painel.');
+            window.location.href = 'login.html';
+        } else {
+            // Mostra se o cara é Admin ou Voluntário na tela para ficar profissional
+            const tipoAcesso = nivelAcesso === 'admin' ? '(Administrador)' : '(Voluntário)';
+            document.getElementById('mensagem-boas-vindas').innerHTML = `Logado como: <strong>${nomeLogado}</strong> <span style="color:#666; font-size:12px;">${tipoAcesso}</span>`;
+        }
+
+        function sairDoSistema() {
+            localStorage.clear(); 
+            window.location.href = 'login.html'; 
+        }
+
+        // 2. BUSCAR DADOS
+        async function carregarFamilias() {
+            try {
+                const resposta = await fetch('http://localhost:3000/familias');
+                const familias = await resposta.json();
+                
+                const corpoTabela = document.getElementById('tabela-familias');
+                corpoTabela.innerHTML = ''; 
+
+                familias.forEach(familia => {
+                    // Prepara o botão de Editar (Vamos fazer ele funcionar na próxima fase)
+                    let botoesAcao = `<button class="btn-acao btn-editar" onclick="editarFamilia(${familia.id})">✏️ Editar</button>`;
+                    
+                    // A MÁGICA DA SEGURANÇA: Se for Admin, ganha o botão de apagar!
+                    if (nivelAcesso === 'admin') {
+                        botoesAcao += `<button class="btn-acao btn-apagar" onclick="apagarFamilia(${familia.id})">🗑️ Apagar</button>`;
+                    }
+
+                    const linha = `
+                        <tr>
+                            <td>${familia.nome_mae}</td>
+                            <td>${familia.cpf}</td>
+                            <td>${familia.fones_contato}</td>
+                            <td>${familia.total_filhos}</td>
+                            <td style="text-align: center;">${botoesAcao}</td>
+                        </tr>
+                    `;
+                    corpoTabela.insertAdjacentHTML('beforeend', linha);
+                });
+            } catch (erro) {
+                alert('Erro ao carregar a lista de famílias.');
+            }
+        }
+
+        // 3. FUNÇÃO DE APAGAR (Com Confirmação e Log)
+        async function apagarFamilia(idFamilia) {
+            // Aqui está a caixinha de confirmação que você pediu!
+            const confirmacao = confirm('⚠️ Tem certeza que deseja apagar esta família do sistema? Esta ação não pode ser desfeita!');
+            
+            if (confirmacao) {
+                try {
+                    // Enviamos o ID da família e o NOME de quem está logado (?autor=...)
+                    const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}?autor=${nomeLogado}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (resposta.ok) {
+                        alert('✅ Família excluída com sucesso! O registro foi salvo na auditoria.');
+                        carregarFamilias(); // Atualiza a tela na hora
+                    } else {
+                        alert('Erro ao excluir. Tente novamente.');
+                    }
+                } catch (erro) {
+                    alert('Erro de conexão com o servidor.');
+                }
+            }
+        }
+        // Função vazia do Editar só para o botão não dar erro ao clicar
+        function editarFamilia(idFamilia) {
+            alert('A função de edição completa será construída na próxima fase do sistema! 🚀');
+        }
+
+        carregarFamilias();
+    </script>
+</body>
+</html>

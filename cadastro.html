@@ -9,11 +9,16 @@
         .formulario-caixa { background: white; padding: 30px; border-radius: 10px; max-width: 700px; margin: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         h2, h3 { text-align: center; color: #333; }
         label { font-weight: bold; margin-top: 10px; display: block; color: #555; font-size: 14px; }
-        input[type="text"], input[type="date"] { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        
+        /* Adicionada a transição suave para a borda */
+        input[type="text"], input[type="date"], select { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; transition: border-color 0.3s; }
+        
+        /* --- NOVO: Classe para a borda vermelha de erro --- */
+        .erro-input { border: 2px solid #dc3545 !important; background-color: #fff8f8; }
+
         .linha-dupla { display: flex; gap: 10px; }
         .linha-dupla div { width: 100%; }
         
-        /* Estilos da área das crianças */
         .area-criancas { background-color: #eef2f5; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1d8dd; }
         .crianca-item { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #ccc; }
         .btn-adicionar { background-color: #17a2b8; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
@@ -27,15 +32,15 @@
 
     <div class="formulario-caixa">
         <div style="text-align: center;">
-            <img src="logo.png" alt="Logo Instituto NAIRE" style="width: 250px; margin-bottom: 15px;">
+            <img src="LogoInstitutoNaire02.jpeg" alt="Logo Instituto NAIRE" style="width: 350px; margin-bottom: 15px;">
         </div>
         
-        <h2>Ficha de Cadastro - NAIRE</h2>
+        <h2 id="titulo-pagina">Ficha de Cadastro - NAIRE</h2>
         
         <form id="formOng">
             <h3>Dados do Responsável</h3>
-            <label>Nome da Mãe / Responsável:</label>
-            <input type="text" id="nome_mae" placeholder="Digite o nome completo" required>
+            <label>Nome da Mãe / Responsável: *</label>
+            <input type="text" id="nome_mae" class="obrigatorio" placeholder="Digite o nome completo">
 
             <div class="linha-dupla">
                 <div>
@@ -43,8 +48,8 @@
                     <input type="text" id="rg" placeholder="Apenas números">
                 </div>
                 <div>
-                    <label>CPF:</label>
-                    <input type="text" id="cpf" placeholder="Apenas números" required>
+                    <label>CPF: *</label>
+                    <input type="text" id="cpf" class="obrigatorio" placeholder="Apenas números">
                 </div>
             </div>
 
@@ -59,28 +64,40 @@
             <h3>Dependentes (Menores)</h3>
             <button type="button" class="btn-adicionar" onclick="adicionarCrianca()">+ Adicionar Criança</button>
             
-            <div id="lista-criancas" class="area-criancas">
-                </div>
+            <div id="lista-criancas" class="area-criancas"></div>
 
             <button type="submit" class="btn-salvar">Salvar Ficha Completa</button>
         </form>
     </div>
 
     <script>
-        // Função para criar os campos da criança na tela
+        // --- 1. VERIFICAÇÃO DE LOGIN ---
+        const nomeLogado = localStorage.getItem('nomeVoluntario');
+        const idVoluntarioCadastro = localStorage.getItem('idVoluntario'); 
+        
+        if (!nomeLogado || !idVoluntarioCadastro) {
+            alert('Acesso negado. Por favor, faça login primeiro.');
+            window.location.href = 'login.html';
+        } else {
+            const h2 = document.getElementById('titulo-pagina');
+            h2.innerHTML = `Ficha de Cadastro - NAIRE <br> <span style="font-size: 14px; color: #007bff;">Logado como: ${nomeLogado}</span>`;
+            // Removido o carregarVoluntarios() daqui, não precisamos mais da lista.
+        }
+
+        // --- 2. FUNÇÕES DE CRIANÇA ---
         function adicionarCrianca() {
             const lista = document.getElementById('lista-criancas');
-            const idCrianca = Date.now(); // Gera um ID único provisório
+            const idCrianca = Date.now(); 
             
             const htmlCrianca = `
                 <div class="crianca-item" id="crianca-${idCrianca}">
                     <div style="flex: 3;">
-                        <label>Nome Completo:</label>
-                        <input type="text" class="nome-crianca" required>
+                        <label>Nome Completo: *</label>
+                        <input type="text" class="nome-crianca obrigatorio">
                     </div>
                     <div style="flex: 2;">
-                        <label>Nascimento:</label>
-                        <input type="date" class="data-crianca" required>
+                        <label>Nascimento: *</label>
+                        <input type="date" class="data-crianca obrigatorio">
                     </div>
                     <div style="flex: 1;">
                         <label>Roupa:</label>
@@ -96,16 +113,53 @@
             lista.insertAdjacentHTML('beforeend', htmlCrianca);
         }
 
-        // Função para apagar uma criança da lista se a pessoa clicou errado
         function removerCrianca(id) {
             document.getElementById(`crianca-${id}`).remove();
         }
 
-        // Cérebro: envia tudo (Mãe + Crianças) para o servidor
+        // --- NOVO: 3. FUNÇÃO DE VALIDAÇÃO VISUAL ---
+        function validarFormulario() {
+            let formValido = true;
+            let primeiroCampoComErro = null;
+
+            // Busca todos os campos que têm a classe 'obrigatorio'
+            const camposObrigatorios = document.querySelectorAll('.obrigatorio');
+
+            camposObrigatorios.forEach(campo => {
+                // Limpa a borda vermelha se o usuário tiver preenchido
+                campo.classList.remove('erro-input');
+
+                // Se estiver vazio, pinta de vermelho
+                if (campo.value.trim() === '') {
+                    campo.classList.add('erro-input');
+                    formValido = false;
+                    
+                    // Guarda o primeiro campo vazio para rolar a tela até ele
+                    if (!primeiroCampoComErro) {
+                        primeiroCampoComErro = campo;
+                    }
+                }
+            });
+
+            if (!formValido) {
+                // Rola a tela até o erro e dá o alerta
+                primeiroCampoComErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                primeiroCampoComErro.focus();
+                alert('⚠️ Por favor, preencha os campos obrigatórios destacados em vermelho.');
+            }
+
+            return formValido;
+        }
+
+        // --- 4. CÉREBRO: ENVIO DO FORMULÁRIO ---
         document.getElementById('formOng').addEventListener('submit', async function(evento) {
             evento.preventDefault();
 
-            // 1. Pega os dados da mãe
+            // CHAMA A VALIDAÇÃO AQUI. Se retornar false, o código para e não envia pro Node.
+            if (!validarFormulario()) {
+                return; 
+            }
+
             const dadosResponsavel = {
                 nome_mae: document.getElementById('nome_mae').value,
                 rg: document.getElementById('rg').value,
@@ -114,7 +168,6 @@
                 fones: document.getElementById('fones').value
             };
 
-            // 2. Varre a tela e pega os dados de todas as crianças
             const listaHTML = document.querySelectorAll('.crianca-item');
             const dadosMenores = [];
             
@@ -127,10 +180,11 @@
                 });
             });
 
-            // 3. Empacota tudo e manda pro Node.js
             const pacoteFinal = {
                 responsavel: dadosResponsavel,
-                menores: dadosMenores
+                menores: dadosMenores,
+                voluntario_cadastro_id: idVoluntarioCadastro, 
+                voluntario_responsavel_id: null // Agora enviamos NULL direto, o Admin preenche depois!
             };
 
             try {
@@ -143,28 +197,17 @@
                 if (resposta.ok) {
                     alert('🎉 Ficha completa da ONG cadastrada com sucesso!');
                     document.getElementById('formOng').reset();
-                    document.getElementById('lista-criancas').innerHTML = ''; // Limpa as crianças
+                    document.getElementById('lista-criancas').innerHTML = ''; 
+                    
+                    // Remove qualquer borda vermelha que tenha ficado após salvar com sucesso
+                    document.querySelectorAll('.obrigatorio').forEach(c => c.classList.remove('erro-input'));
                 } else {
-                    alert('Ops! Erro ao salvar.');
+                    alert('Ops! Erro ao salvar. Verifique o console do Node.');
                 }
             } catch (erro) {
                 alert('Erro de conexão. Servidor está ligado?');
             }
         });
-    </script>
-    <script>
-        // Pega o nome do voluntário que o login.html salvou no navegador
-        const nomeLogado = localStorage.getItem('nomeVoluntario');
-        
-        // Se o cara tentou entrar direto no cadastro.html sem fazer login, a gente chuta ele pro login!
-        if (!nomeLogado) {
-            alert('Acesso negado. Por favor, faça login primeiro.');
-            window.location.href = 'login.html';
-        } else {
-            // Se ele logou direitinho, a gente coloca o nome dele no topo da tela!
-            const h2 = document.querySelector('h2');
-            h2.innerHTML = `Ficha de Cadastro - NAIRE <br> <span style="font-size: 14px; color: #007bff;">Bem-vindo(a), ${nomeLogado}</span>`;
-        }
     </script>
 </body>
 </html>

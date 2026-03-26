@@ -5,37 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel - ONG NAIRE</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
-        .painel-caixa { background: white; padding: 30px; border-radius: 10px; max-width: 950px; margin: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h2 { color: #333; display: flex; justify-content: space-between; align-items: center; }
-        .btn-sair { background-color: #6c757d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px;}
-        .btn-novo { background-color: #28a745; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px;}
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 0; margin: 0; }
+        
+        /* A BARRA DE NAVEGAÇÃO INTELIGENTE */
+        .navbar { background-color: #343a40; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .navbar-logo { font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .navbar-links { display: flex; gap: 15px; align-items: center; }
+        .nav-btn { background-color: transparent; color: white; border: 1px solid transparent; padding: 8px 12px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px; transition: 0.3s; }
+        .nav-btn:hover { background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
+        .nav-btn.destaque { background-color: #28a745; font-weight: bold; border: none; }
+        .nav-btn.destaque:hover { background-color: #218838; }
+        .nav-btn.admin { background-color: #ffc107; color: #333; font-weight: bold; border: none; }
+        .nav-btn.admin:hover { background-color: #e0a800; }
+        .nav-btn.sair { background-color: #dc3545; border: none; }
+        .nav-btn.sair:hover { background-color: #c82333; }
+
+        /* RESTO DO PAINEL */
+        .painel-caixa { background: white; padding: 30px; border-radius: 10px; max-width: 950px; margin: 30px auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0;}
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: middle; }
         th { background-color: #007bff; color: white; }
         tr:hover { background-color: #f1f1f1; }
 
-        /* Estilo dos novos botões de ação */
         .btn-acao { padding: 6px 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; margin-right: 5px; color: white; }
+        .btn-detalhes { background-color: #17a2b8; }
+        .btn-detalhes:hover { background-color: #138496; }
         .btn-editar { background-color: #ffc107; color: #333; }
         .btn-editar:hover { background-color: #e0a800; }
         .btn-apagar { background-color: #dc3545; }
         .btn-apagar:hover { background-color: #c82333; }
+        
+        /* ESTILOS DOS MODAIS */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
+        .modal-conteudo { background-color: white; margin: 5% auto; padding: 25px; border-radius: 10px; width: 90%; max-width: 750px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 85vh; overflow-y: auto;}
+        .fechar { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .fechar:hover { color: black; }
+        .info-grupo { margin-bottom: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 5px solid #007bff; }
+        .badge { background: #28a745; color: white; padding: 6px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; display: inline-block;}
+        .badge-alerta { background: #ffc107; color: #333; }
+        .badge-erro { background: #dc3545; color: white; }
+        .select-padrinho { padding: 6px; border-radius: 4px; border: 1px solid #ccc; max-width: 300px; width: 100%; }
+
+        /* Estilo para os campos do form de edição */
+        .form-edicao label { display: block; margin-top: 10px; font-weight: bold; color: #555; }
+        .form-edicao input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
+    <div class="navbar">
+        <div class="navbar-logo">🤝 ONG NAIRE</div>
+        <div class="navbar-links" id="menu-dinamico"></div>
+    </div>
+
     <div class="painel-caixa">
-        <h2>
-            Famílias Cadastradas
-            <div>
-                <a href="cadastro.html" class="btn-novo">+ Novo Cadastro</a>
-                <button onclick="sairDoSistema()" class="btn-sair">Sair</button>
-            </div>
-        </h2>
-        
-        <p id="mensagem-boas-vindas"></p>
+        <h2 id="titulo-tabela">Famílias Cadastradas</h2>
+        <p id="mensagem-boas-vindas" style="color: #666; margin-top: -5px; margin-bottom: 20px;"></p>
 
         <table>
             <thead>
@@ -43,96 +70,223 @@
                     <th>Nome da Responsável</th>
                     <th>CPF</th>
                     <th>Telefone</th>
-                    <th>Filhos</th>
-                    <th style="text-align: center;">Ações</th> </tr>
+                    <th>Status Apadrinhamento</th>
+                    <th style="text-align: center;">Ações</th> 
+                </tr>
             </thead>
             <tbody id="tabela-familias">
-                </tbody>
+                <tr><td colspan="5" style="text-align: center;">Carregando dados...</td></tr>
+            </tbody>
         </table>
     </div>
 
+    <div id="modalFicha" class="modal">
+        <div class="modal-conteudo">
+            <span class="fechar" onclick="fecharModal()">&times;</span>
+            <h2 id="modal-nome-mae" style="margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">Nome da Mãe</h2>
+            
+            <div class="info-grupo">
+                <strong>📋 Dados do Responsável:</strong><br><br>
+                <b>CPF:</b> <span id="modal-cpf"></span> <br>
+                <b>Endereço:</b> <span id="modal-endereco"></span> <br>
+                <b>Telefone:</b> <span id="modal-telefone"></span> <br><br>
+                <strong>🤝 Voluntário Acompanhante:</strong> <span id="modal-voluntario" class="badge"></span>
+            </div>
+
+            <div class="info-grupo" style="border-left-color: #17a2b8;">
+                <strong>👶 Dependentes Cadastrados e Apadrinhamento:</strong>
+                <ul id="lista-menores-modal" style="margin-top: 15px; padding-left: 0; list-style: none; line-height: 1.6;"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalEditar" class="modal">
+        <div class="modal-conteudo">
+            <span class="fechar" onclick="fecharModalEditar()">&times;</span>
+            <h2 style="margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">✏️ Editar Cadastro</h2>
+            
+            <form id="formEditar" class="form-edicao">
+                <input type="hidden" id="edit-id">
+                
+                <label>Nome da Mãe / Responsável:</label>
+                <input type="text" id="edit-nome" required>
+
+                <label>CPF:</label>
+                <input type="text" id="edit-cpf">
+
+                <label>Telefone / WhatsApp:</label>
+                <input type="text" id="edit-telefone">
+
+                <label>Endereço Completo:</label>
+                <input type="text" id="edit-endereco">
+
+                <button type="button" onclick="salvarEdicao()" class="nav-btn destaque" style="width: 100%; margin-top: 20px; padding: 15px;">💾 Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // 1. SEGURANÇA E CRACHÁ
         const nomeLogado = localStorage.getItem('nomeVoluntario');
-        const nivelAcesso = localStorage.getItem('nivelAcesso'); // Pegamos o nível do crachá!
+        const nivelAcesso = localStorage.getItem('nivelAcesso'); 
+        const idLogado = localStorage.getItem('idVoluntario'); 
 
         if (!nomeLogado) {
-            alert('Acesso negado! Faça login para ver o painel.');
-            window.location.href = 'login.html';
-        } else {
-            // Mostra se o cara é Admin ou Voluntário na tela para ficar profissional
-            const tipoAcesso = nivelAcesso === 'admin' ? '(Administrador)' : '(Voluntário)';
-            document.getElementById('mensagem-boas-vindas').innerHTML = `Logado como: <strong>${nomeLogado}</strong> <span style="color:#666; font-size:12px;">${tipoAcesso}</span>`;
+            alert('Acesso negado!'); window.location.href = 'login.html';
         }
 
-        function sairDoSistema() {
-            localStorage.clear(); 
-            window.location.href = 'login.html'; 
+        function montarMenu() {
+            const menuContainer = document.getElementById('menu-dinamico');
+            let htmlMenu = '';
+            if (nivelAcesso === 'admin') {
+                htmlMenu += `<a href="painel-admin.html" class="nav-btn admin">⚙️ Painel Admin</a>`;
+                document.getElementById('titulo-tabela').innerText = 'Todas as Famílias da ONG';
+            }
+            htmlMenu += `
+                <a href="cadastro.html" class="nav-btn destaque">➕ Novo Cadastro</a>
+                <button onclick="sairDoSistema()" class="nav-btn sair">🚪 Sair</button>
+            `;
+            menuContainer.innerHTML = htmlMenu;
+            document.getElementById('mensagem-boas-vindas').innerHTML = `Olá, <strong>${nomeLogado}</strong>.`;
         }
 
-        // 2. BUSCAR DADOS
+        function sairDoSistema() { localStorage.clear(); window.location.href = 'login.html'; }
+
         async function carregarFamilias() {
             try {
-                const resposta = await fetch('http://localhost:3000/familias');
+                let urlBusca = 'http://localhost:3000/familias';
+                if (nivelAcesso !== 'admin') urlBusca += `?voluntario_id=${idLogado}`;
+
+                const resposta = await fetch(urlBusca);
                 const familias = await resposta.json();
-                
                 const corpoTabela = document.getElementById('tabela-familias');
                 corpoTabela.innerHTML = ''; 
 
                 familias.forEach(familia => {
-                    // Prepara o botão de Editar (Vamos fazer ele funcionar na próxima fase)
-                    let botoesAcao = `<button class="btn-acao btn-editar" onclick="editarFamilia(${familia.id})">✏️ Editar</button>`;
-                    
-                    // A MÁGICA DA SEGURANÇA: Se for Admin, ganha o botão de apagar!
-                    if (nivelAcesso === 'admin') {
-                        botoesAcao += `<button class="btn-acao btn-apagar" onclick="apagarFamilia(${familia.id})">🗑️ Apagar</button>`;
-                    }
+                    const totalFilhos = Number(familia.total_filhos) || 0;
+                    const apadrinhados = Number(familia.apadrinhados) || 0;
+                    let badgeStatus = totalFilhos === 0 ? 'Sem crianças' : 
+                                     (apadrinhados === totalFilhos ? '<span class="badge">🎁 100%</span>' : 
+                                     (apadrinhados > 0 ? `<span class="badge badge-alerta">⚠️ ${apadrinhados}/${totalFilhos}</span>` : 
+                                     `<span class="badge badge-erro">❌ 0/${totalFilhos}</span>`));
 
                     const linha = `
                         <tr>
-                            <td>${familia.nome_mae}</td>
-                            <td>${familia.cpf}</td>
-                            <td>${familia.fones_contato}</td>
-                            <td>${familia.total_filhos}</td>
-                            <td style="text-align: center;">${botoesAcao}</td>
+                            <td><strong>${familia.nome_mae}</strong></td>
+                            <td>${familia.cpf || '-'}</td>
+                            <td>${familia.fones_contato || '-'}</td>
+                            <td>${badgeStatus}</td>
+                            <td style="text-align: center;">
+                                <button class="btn-acao btn-detalhes" onclick="abrirFichaCompleta(${familia.id})">👁️ Detalhes</button>
+                                <button class="btn-acao btn-editar" onclick="editarFamilia(${familia.id})">✏️ Editar</button>
+                                ${nivelAcesso === 'admin' ? `<button class="btn-acao btn-apagar" onclick="apagarFamilia(${familia.id})">🗑️ Apagar</button>` : ''}
+                            </td>
                         </tr>
                     `;
                     corpoTabela.insertAdjacentHTML('beforeend', linha);
                 });
-            } catch (erro) {
-                alert('Erro ao carregar a lista de famílias.');
-            }
+            } catch (e) { console.error(e); }
         }
 
-        // 3. FUNÇÃO DE APAGAR (Com Confirmação e Log)
-        async function apagarFamilia(idFamilia) {
-            // Aqui está a caixinha de confirmação que você pediu!
-            const confirmacao = confirm('⚠️ Tem certeza que deseja apagar esta família do sistema? Esta ação não pode ser desfeita!');
-            
-            if (confirmacao) {
-                try {
-                    // Enviamos o ID da família e o NOME de quem está logado (?autor=...)
-                    const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}?autor=${nomeLogado}`, {
-                        method: 'DELETE'
+        // --- FUNÇÕES DE EDIÇÃO ---
+        async function editarFamilia(id) {
+            try {
+                const resposta = await fetch(`http://localhost:3000/familias/${id}`);
+                const dados = await resposta.json();
+                
+                document.getElementById('edit-id').value = dados.responsavel.id;
+                document.getElementById('edit-nome').value = dados.responsavel.nome_mae;
+                document.getElementById('edit-cpf').value = dados.responsavel.cpf || '';
+                document.getElementById('edit-telefone').value = dados.responsavel.fones_contato || '';
+                document.getElementById('edit-endereco').value = dados.responsavel.endereco || '';
+                
+                document.getElementById('modalEditar').style.display = 'block';
+            } catch (e) { alert('Erro ao carregar dados para edição.'); }
+        }
+
+        function fecharModalEditar() { document.getElementById('modalEditar').style.display = 'none'; }
+
+        async function salvarEdicao() {
+            const id = document.getElementById('edit-id').value;
+            const dados = {
+                nome_mae: document.getElementById('edit-nome').value,
+                cpf: document.getElementById('edit-cpf').value,
+                fones_contato: document.getElementById('edit-telefone').value,
+                endereco: document.getElementById('edit-endereco').value
+            };
+
+            try {
+                const res = await fetch(`http://localhost:3000/familias/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+                if (res.ok) {
+                    alert('✅ Cadastro atualizado!');
+                    fecharModalEditar();
+                    carregarFamilias();
+                } else { alert('Erro ao salvar.'); }
+            } catch (e) { alert('Erro de conexão.'); }
+        }
+
+        // --- FUNÇÕES DE DETALHES ---
+        async function abrirFichaCompleta(id) {
+            try {
+                const resposta = await fetch(`http://localhost:3000/familias/${id}`);
+                const dados = await resposta.json();
+                const resPadrinhos = await fetch('http://localhost:3000/admin/padrinhos');
+                const listaPadrinhos = await resPadrinhos.json();
+
+                document.getElementById('modal-nome-mae').innerText = dados.responsavel.nome_mae;
+                document.getElementById('modal-cpf').innerText = dados.responsavel.cpf || '-';
+                document.getElementById('modal-endereco').innerText = dados.responsavel.endereco || '-';
+                document.getElementById('modal-telefone').innerText = dados.responsavel.fones_contato || '-';
+                document.getElementById('modal-voluntario').innerText = dados.responsavel.nome_voluntario_responsavel || 'Sem vínculo';
+
+                const lista = document.getElementById('lista-menores-modal');
+                lista.innerHTML = '';
+                dados.menores.forEach(c => {
+                    let opcoes = `<option value="">-- Aguardando Padrinho --</option>`;
+                    listaPadrinhos.forEach(p => {
+                        opcoes += `<option value="${p.id}" ${p.id === c.padrinho_id ? 'selected' : ''}>${p.nome}</option>`;
                     });
 
-                    if (resposta.ok) {
-                        alert('✅ Família excluída com sucesso! O registro foi salvo na auditoria.');
-                        carregarFamilias(); // Atualiza a tela na hora
-                    } else {
-                        alert('Erro ao excluir. Tente novamente.');
-                    }
-                } catch (erro) {
-                    alert('Erro de conexão com o servidor.');
-                }
-            }
-        }
-        // Função vazia do Editar só para o botão não dar erro ao clicar
-        function editarFamilia(idFamilia) {
-            alert('A função de edição completa será construída na próxima fase do sistema! 🚀');
+                    lista.innerHTML += `
+                        <li style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+                            <strong>${c.nome_completo}</strong><br>
+                            Roupa: ${c.tamanho_roupa} | Sapato: ${c.tamanho_sapato}<br>
+                            <div style="margin-top: 10px;">
+                                <select id="sel-${c.id}" class="select-padrinho">${opcoes}</select>
+                                <button onclick="salvarMatch(${c.id}, ${id})" class="btn-acao btn-detalhes" style="background:#28a745">💾</button>
+                            </div>
+                        </li>`;
+                });
+                document.getElementById('modalFicha').style.display = 'block';
+            } catch (e) { alert('Erro ao abrir detalhes.'); }
         }
 
-        carregarFamilias();
+        async function salvarMatch(idCrianca, idFamilia) {
+            const padrinhoId = document.getElementById(`sel-${idCrianca}`).value;
+            await fetch('http://localhost:3000/vincular-padrinho', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ crianca_id: idCrianca, padrinho_id: padrinhoId || null })
+            });
+            alert('Vínculo salvo!'); abrirFichaCompleta(idFamilia); carregarFamilias();
+        }
+
+        function fecharModal() { document.getElementById('modalFicha').style.display = 'none'; }
+
+        async function apagarFamilia(id) {
+            if (confirm('Apagar esta família?')) {
+                await fetch(`http://localhost:3000/familias/${id}?autor=${nomeLogado}`, { method: 'DELETE' });
+                carregarFamilias();
+            }
+        }
+
+        window.onclick = function(e) {
+            if (e.target.className === 'modal') { fecharModal(); fecharModalEditar(); }
+        }
+
+        montarMenu(); carregarFamilias();
     </script>
 </body>
 </html>

@@ -10,10 +10,8 @@
         h2, h3 { text-align: center; color: #333; }
         label { font-weight: bold; margin-top: 10px; display: block; color: #555; font-size: 14px; }
         
-        /* Adicionada a transição suave para a borda */
         input[type="text"], input[type="date"], select { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; transition: border-color 0.3s; }
         
-        /* --- NOVO: Classe para a borda vermelha de erro --- */
         .erro-input { border: 2px solid #dc3545 !important; background-color: #fff8f8; }
 
         .linha-dupla { display: flex; gap: 10px; }
@@ -24,8 +22,12 @@
         .btn-adicionar { background-color: #17a2b8; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
         .btn-remover { background-color: #dc3545; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; height: 38px; margin-bottom: 15px;}
         
-        .btn-salvar { background-color: #28a745; color: white; padding: 15px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 18px; font-weight: bold; margin-top: 10px; }
+        /* Ajuste no botão salvar para alinhar com o voltar */
+        .btn-salvar { background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 18px; font-weight: bold; transition: 0.3s; }
         .btn-salvar:hover { background-color: #218838; }
+
+        .btn-voltar { background-color: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .btn-voltar:hover { background-color: #5a6268; }
     </style>
 </head>
 <body>
@@ -35,7 +37,7 @@
             <img src="LogoInstitutoNaire02.jpeg" alt="Logo Instituto NAIRE" style="width: 350px; margin-bottom: 15px;">
         </div>
         
-        <h2 id="titulo-pagina">Ficha de Cadastro - NAIRE</h2>
+        <h2 id="titulo-pagina">Ficha de Cadastro</h2>
         
         <form id="formOng">
             <h3>Dados do Responsável</h3>
@@ -66,7 +68,10 @@
             
             <div id="lista-criancas" class="area-criancas"></div>
 
-            <button type="submit" class="btn-salvar">Salvar Ficha Completa</button>
+            <div style="display: flex; gap: 15px; margin-top: 20px; height: 55px;">
+                <button type="submit" class="btn-salvar" style="flex: 2;">💾 Salvar Ficha Completa</button>
+                <a href="painel.html" class="btn-voltar" style="flex: 1;">⬅️ Voltar</a>
+            </div>
         </form>
     </div>
 
@@ -81,7 +86,6 @@
         } else {
             const h2 = document.getElementById('titulo-pagina');
             h2.innerHTML = `Ficha de Cadastro - NAIRE <br> <span style="font-size: 14px; color: #007bff;">Logado como: ${nomeLogado}</span>`;
-            // Removido o carregarVoluntarios() daqui, não precisamos mais da lista.
         }
 
         // --- 2. FUNÇÕES DE CRIANÇA ---
@@ -117,48 +121,34 @@
             document.getElementById(`crianca-${id}`).remove();
         }
 
-        // --- NOVO: 3. FUNÇÃO DE VALIDAÇÃO VISUAL ---
+        // --- 3. FUNÇÃO DE VALIDAÇÃO VISUAL ---
         function validarFormulario() {
             let formValido = true;
             let primeiroCampoComErro = null;
-
-            // Busca todos os campos que têm a classe 'obrigatorio'
             const camposObrigatorios = document.querySelectorAll('.obrigatorio');
 
             camposObrigatorios.forEach(campo => {
-                // Limpa a borda vermelha se o usuário tiver preenchido
                 campo.classList.remove('erro-input');
-
-                // Se estiver vazio, pinta de vermelho
                 if (campo.value.trim() === '') {
                     campo.classList.add('erro-input');
                     formValido = false;
-                    
-                    // Guarda o primeiro campo vazio para rolar a tela até ele
-                    if (!primeiroCampoComErro) {
-                        primeiroCampoComErro = campo;
-                    }
+                    if (!primeiroCampoComErro) primeiroCampoComErro = campo;
                 }
             });
 
             if (!formValido) {
-                // Rola a tela até o erro e dá o alerta
                 primeiroCampoComErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 primeiroCampoComErro.focus();
                 alert('⚠️ Por favor, preencha os campos obrigatórios destacados em vermelho.');
             }
-
             return formValido;
         }
 
-        // --- 4. CÉREBRO: ENVIO DO FORMULÁRIO ---
+        // --- 4. ENVIO DO FORMULÁRIO ---
         document.getElementById('formOng').addEventListener('submit', async function(evento) {
             evento.preventDefault();
 
-            // CHAMA A VALIDAÇÃO AQUI. Se retornar false, o código para e não envia pro Node.
-            if (!validarFormulario()) {
-                return; 
-            }
+            if (!validarFormulario()) return; 
 
             const dadosResponsavel = {
                 nome_mae: document.getElementById('nome_mae').value,
@@ -184,7 +174,7 @@
                 responsavel: dadosResponsavel,
                 menores: dadosMenores,
                 voluntario_cadastro_id: idVoluntarioCadastro, 
-                voluntario_responsavel_id: null // Agora enviamos NULL direto, o Admin preenche depois!
+                voluntario_responsavel_id: null 
             };
 
             try {
@@ -198,11 +188,9 @@
                     alert('🎉 Ficha completa da ONG cadastrada com sucesso!');
                     document.getElementById('formOng').reset();
                     document.getElementById('lista-criancas').innerHTML = ''; 
-                    
-                    // Remove qualquer borda vermelha que tenha ficado após salvar com sucesso
                     document.querySelectorAll('.obrigatorio').forEach(c => c.classList.remove('erro-input'));
                 } else {
-                    alert('Ops! Erro ao salvar. Verifique o console do Node.');
+                    alert('Ops! Erro ao salvar.');
                 }
             } catch (erro) {
                 alert('Erro de conexão. Servidor está ligado?');

@@ -34,7 +34,6 @@
         .btn-editar { background-color: #ffc107; color: #333; }
         .btn-editar:hover { background-color: #e0a800; }
 
-        /* ESTILOS DOS MODAIS */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
         .modal-conteudo { background-color: white; margin: 5% auto; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .fechar { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; margin-top: -10px;}
@@ -114,34 +113,18 @@
         <div class="modal-conteudo">
             <span class="fechar" onclick="fecharModalPadrinho()">&times;</span>
             <h2 style="margin-top: 0; border-bottom: none; padding-bottom: 0;">Cadastrar Doador</h2>
-            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Adicione quem está ajudando a ONG.</p>
-
             <form id="formPadrinho">
                 <label class="checkbox-anonimo">
                     <input type="checkbox" id="eh_anonimo" onchange="alternarCampoNome()">
-                    <strong>Doador Anônimo</strong> (Não quer ser identificado)
+                    <strong>Doador Anônimo</strong>
                 </label>
-
                 <div class="form-grupo" id="div-nome-padrinho">
-                    <label>Nome do Padrinho / Madrinha: *</label>
+                    <label>Nome: *</label>
                     <input type="text" id="nome_padrinho" placeholder="Ex: Maria da Silva">
                 </div>
-
-                <div class="form-grupo">
-                    <label>Telefone / WhatsApp:</label>
-                    <input type="text" id="telefone_padrinho" placeholder="(11) 99999-9999">
-                </div>
-
-                <div class="form-grupo">
-                    <label>Data da Doação: *</label>
-                    <input type="date" id="data_doacao" required>
-                </div>
-
-                <div class="form-grupo">
-                    <label>O que doou? (Observações):</label>
-                    <textarea id="obs_padrinho" rows="3" placeholder="Ex: Doou roupas tamanho 10 e sapatos 32."></textarea>
-                </div>
-
+                <div class="form-grupo"><label>Telefone:</label><input type="text" id="telefone_padrinho"></div>
+                <div class="form-grupo"><label>Data: *</label><input type="date" id="data_doacao" required></div>
+                <div class="form-grupo"><label>Observações:</label><textarea id="obs_padrinho" rows="3"></textarea></div>
                 <button type="submit" class="btn-submit-modal">Salvar Doador</button>
             </form>
         </div>
@@ -150,66 +133,44 @@
     <div id="modalVoluntario" class="modal">
         <div class="modal-conteudo">
             <span class="fechar" onclick="fecharModalVoluntario()">&times;</span>
-            <h2 id="titulo-modal-voluntario" style="margin-top: 0; padding-bottom: 0;">Novo Voluntário</h2>
-            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Gerencie o acesso da sua equipe.</p>
-
+            <h2 id="titulo-modal-voluntario">Novo Voluntário</h2>
             <form id="formVoluntario">
                 <input type="hidden" id="voluntario_id_edit">
-
+                <div class="form-grupo"><label>Nome Completo: *</label><input type="text" id="nome_voluntario" required></div>
+                <div class="form-grupo"><label>Usuário: *</label><input type="text" id="usuario_voluntario" required></div>
+                <div class="form-grupo" id="div-senha-voluntario"><label>Senha: *</label><input type="text" id="senha_voluntario"></div>
                 <div class="form-grupo">
-                    <label>Nome Completo: *</label>
-                    <input type="text" id="nome_voluntario" required>
-                </div>
-
-                <div class="form-grupo">
-                    <label>Usuário (Login): *</label>
-                    <input type="text" id="usuario_voluntario" placeholder="Ex: maria.silva" required>
-                </div>
-
-                <div class="form-grupo" id="div-senha-voluntario">
-                    <label>Senha Provisória: *</label>
-                    <input type="text" id="senha_voluntario" placeholder="Crie uma senha de acesso">
-                </div>
-
-                <div class="form-grupo">
-                    <label>Nível de Acesso: *</label>
+                    <label>Nível: *</label>
                     <select id="nivel_voluntario" required>
-                        <option value="voluntario">Voluntário (Só acessa e cadastra)</option>
-                        <option value="admin">Administrador (Acesso total)</option>
+                        <option value="voluntario">Voluntário</option>
+                        <option value="admin">Administrador</option>
                     </select>
                 </div>
-
                 <button type="submit" class="btn-submit-modal" style="background-color: #007bff;">Salvar Dados da Equipe</button>
             </form>
         </div>
     </div>
 
     <script>
-        // --- 1. BARREIRA DE SEGURANÇA MÁXIMA ---
         const nivelAcesso = localStorage.getItem('nivelAcesso');
         if (nivelAcesso !== 'admin') {
-            alert('⛔ Acesso negado! Apenas Administradores podem acessar esta área.');
+            alert('⛔ Acesso negado!');
             window.location.href = 'painel.html';
         }
 
-        // --- 2. LÓGICA GERAL DAS ABAS ---
         function abrirAba(evento, nomeDaAba) {
             const conteudos = document.getElementsByClassName('aba-conteudo');
             for (let i = 0; i < conteudos.length; i++) { conteudos[i].style.display = 'none'; }
-            
             const botoes = document.getElementsByClassName('aba-btn');
             for (let i = 0; i < botoes.length; i++) { botoes[i].className = botoes[i].className.replace(' ativa', ''); }
-            
             document.getElementById(nomeDaAba).style.display = 'block';
             evento.currentTarget.className += ' ativa';
 
-            // Carrega os dados específicos de cada aba quando clicada
             if(nomeDaAba === 'aba-padrinhos') carregarPadrinhos();
             if(nomeDaAba === 'aba-voluntarios') carregarVoluntariosAdmin();
             if(nomeDaAba === 'aba-familias') prepararTelaDistribuicao();
         }
 
-        // --- 3. ABA 1: DISTRIBUIR FAMÍLIAS ---
         let listaVoluntarios = []; 
         async function prepararTelaDistribuicao() {
             try {
@@ -224,233 +185,100 @@
         function montarTabelaDistribuicao(familias) {
             const corpoTabela = document.getElementById('tabela-distribuicao');
             corpoTabela.innerHTML = '';
-            if (familias.length === 0) { corpoTabela.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhuma família.</td></tr>'; return; }
-
             familias.forEach(async (familia) => {
                 const resDetalhe = await fetch(`http://localhost:3000/familias/${familia.id}`);
                 const detalhe = await resDetalhe.json();
-                const voluntarioAtualId = detalhe.responsavel.voluntario_responsavel_id;
-
-                let optionsHtml = '<option value="">-- Sem voluntário --</option>';
-                listaVoluntarios.forEach(vol => {
-                    const selecionado = (vol.id === voluntarioAtualId) ? 'selected' : '';
-                    optionsHtml += `<option value="${vol.id}" ${selecionado}>${vol.nome}</option>`;
-                });
-
-                const linha = `
-                    <tr>
-                        <td><strong>${familia.nome_mae}</strong></td>
-                        <td>${familia.total_filhos} criança(s)</td>
-                        <td><select id="select-vol-${familia.id}" class="select-admin">${optionsHtml}</select></td>
-                        <td><button class="btn-salvar-vinculo" onclick="vincular(${familia.id})">💾 Salvar</button></td>
-                    </tr>
-                `;
-                corpoTabela.insertAdjacentHTML('beforeend', linha);
+                const vId = detalhe.responsavel.voluntario_responsavel_id;
+                let options = '<option value="">-- Sem voluntário --</option>';
+                listaVoluntarios.forEach(v => options += `<option value="${v.id}" ${v.id === vId ? 'selected' : ''}>${v.nome}</option>`);
+                corpoTabela.insertAdjacentHTML('beforeend', `<tr><td><strong>${familia.nome_mae}</strong></td><td>${familia.total_filhos}</td><td><select id="select-vol-${familia.id}" class="select-admin">${options}</select></td><td><button class="btn-salvar-vinculo" onclick="vincular(${familia.id})">💾 Salvar</button></td></tr>`);
             });
         }
 
         async function vincular(idFamilia) {
-            const idVoluntarioEscolhido = document.getElementById(`select-vol-${idFamilia}`).value;
-            try {
-                const res = await fetch('http://localhost:3000/admin/vincular-voluntario', {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ familia_id: idFamilia, voluntario_responsavel_id: idVoluntarioEscolhido || null })
-                });
-                if (res.ok) alert('✅ Acompanhamento atualizado com sucesso!');
-                else alert('Erro ao atualizar.');
-            } catch (e) { alert('Erro de conexão.'); }
+            const idV = document.getElementById(`select-vol-${idFamilia}`).value;
+            const res = await fetch('http://localhost:3000/admin/vincular-voluntario', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ familia_id: idFamilia, voluntario_responsavel_id: idV || null })
+            });
+            if(res.ok) alert('✅ Atualizado!');
         }
 
-        // --- 4. ABA 2: VOLUNTÁRIOS ---
         async function carregarVoluntariosAdmin() {
-            try {
-                const resposta = await fetch('http://localhost:3000/admin/voluntarios');
-                const voluntarios = await resposta.json();
-                const tbody = document.getElementById('tabela-voluntarios-admin');
-                tbody.innerHTML = '';
-
-                voluntarios.forEach(v => {
-                    const seloAdmin = v.nivel_acesso === 'admin' ? '<span class="badge" style="background-color:#007bff;">Admin</span>' : '';
-                    const linha = `
-                        <tr>
-                            <td><strong>${v.nome}</strong></td>
-                            <td>${v.usuario}</td>
-                            <td>${v.nivel_acesso.toUpperCase()} ${seloAdmin}</td>
-                            <td style="text-align: center;">
-                                <button class="btn-acao btn-editar" onclick="editarVoluntario(${v.id}, '${v.nome}', '${v.usuario}', '${v.nivel_acesso}')">✏️ Editar</button>
-                                <button class="btn-apagar" onclick="apagarVoluntario(${v.id})">🗑️ Apagar</button>
-                            </td>
-                        </tr>
-                    `;
-                    tbody.insertAdjacentHTML('beforeend', linha);
-                });
-            } catch (erro) { alert('Erro ao carregar a equipe.'); }
+            const res = await fetch('http://localhost:3000/admin/voluntarios');
+            const data = await res.json();
+            const tbody = document.getElementById('tabela-voluntarios-admin');
+            tbody.innerHTML = '';
+            data.forEach(v => {
+                tbody.innerHTML += `<tr><td><strong>${v.nome}</strong></td><td>${v.usuario}</td><td>${v.nivel_acesso.toUpperCase()}</td><td style="text-align:center;"><button class="btn-apagar" onclick="apagarVoluntario(${v.id})">🗑️ Apagar</button></td></tr>`;
+            });
         }
 
-        function abrirModalNovoVoluntario() {
-            document.getElementById('formVoluntario').reset();
-            document.getElementById('voluntario_id_edit').value = ''; 
-            document.getElementById('titulo-modal-voluntario').innerText = 'Novo Membro da Equipe';
-            document.getElementById('div-senha-voluntario').style.display = 'block'; 
-            document.getElementById('senha_voluntario').required = true;
-            document.getElementById('modalVoluntario').style.display = 'block';
+        async function carregarPadrinhos() {
+            const res = await fetch('http://localhost:3000/admin/padrinhos');
+            const data = await res.json();
+            const tbody = document.getElementById('tabela-padrinhos-admin');
+            tbody.innerHTML = '';
+            data.forEach(p => {
+                let dataF = p.data_doacao ? new Date(p.data_doacao).toLocaleDateString('pt-BR') : '-';
+                tbody.innerHTML += `<tr><td>${p.nome}</td><td>${p.telefone || '-'}</td><td>${dataF}</td><td>${p.observacoes || '-'}</td><td style="text-align:center;"><button class="btn-apagar" onclick="apagarPadrinho(${p.id})">🗑️</button></td></tr>`;
+            });
         }
 
-        function editarVoluntario(id, nome, usuario, nivel) {
-            document.getElementById('voluntario_id_edit').value = id;
-            document.getElementById('nome_voluntario').value = nome;
-            document.getElementById('usuario_voluntario').value = usuario;
-            document.getElementById('nivel_voluntario').value = nivel;
-            document.getElementById('titulo-modal-voluntario').innerText = 'Editar Membro da Equipe';
-            document.getElementById('div-senha-voluntario').style.display = 'none'; 
-            document.getElementById('senha_voluntario').required = false;
-            document.getElementById('modalVoluntario').style.display = 'block';
-        }
+        document.getElementById('formPadrinho').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const pacote = {
+                eh_anonimo: document.getElementById('eh_anonimo').checked,
+                nome: document.getElementById('nome_padrinho').value,
+                telefone: document.getElementById('telefone_padrinho').value,
+                data_doacao: document.getElementById('data_doacao').value,
+                observacoes: document.getElementById('obs_padrinho').value
+            };
+            const res = await fetch('http://localhost:3000/admin/padrinhos', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
+            });
+            if(res.ok) { alert('Salvo!'); fecharModalPadrinho(); carregarPadrinhos(); }
+        });
 
-        function fecharModalVoluntario() {
-            document.getElementById('modalVoluntario').style.display = 'none';
-        }
-
-        document.getElementById('formVoluntario').addEventListener('submit', async function(evento) {
-            evento.preventDefault();
+        document.getElementById('formVoluntario').addEventListener('submit', async function(e) {
+            e.preventDefault();
             const idEdit = document.getElementById('voluntario_id_edit').value;
             const pacote = {
                 nome: document.getElementById('nome_voluntario').value,
                 usuario: document.getElementById('usuario_voluntario').value,
                 nivel_acesso: document.getElementById('nivel_voluntario').value
             };
-
-            try {
-                if (idEdit) {
-                    const res = await fetch(`http://localhost:3000/admin/voluntarios/${idEdit}`, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
-                    });
-                    if (res.ok) alert('Atualizado com sucesso!');
-                } else {
-                    pacote.senha = document.getElementById('senha_voluntario').value;
-                    const res = await fetch('http://localhost:3000/cadastrar-voluntario', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
-                    });
-                    if (res.ok) alert('Voluntário criado com sucesso!');
-                    else alert('Erro. Talvez este nome de usuário já exista.');
-                }
-                fecharModalVoluntario();
-                carregarVoluntariosAdmin(); 
-            } catch (erro) { alert('Erro no servidor.'); }
+            if(!idEdit) pacote.senha = document.getElementById('senha_voluntario').value;
+            
+            const res = await fetch(idEdit ? `http://localhost:3000/admin/voluntarios/${idEdit}` : 'http://localhost:3000/cadastrar-voluntario', {
+                method: idEdit ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
+            });
+            if(res.ok) { alert('Sucesso!'); fecharModalVoluntario(); carregarVoluntariosAdmin(); }
         });
 
         async function apagarVoluntario(id) {
-            if (confirm('Tem certeza? Se ele estiver atrelado a uma família, a exclusão será bloqueada por segurança.')) {
-                try {
-                    const res = await fetch(`http://localhost:3000/admin/voluntarios/${id}`, { method: 'DELETE' });
-                    const dados = await res.json();
-                    if (res.ok) {
-                        alert('✅ Excluído com sucesso.');
-                        carregarVoluntariosAdmin();
-                    } else { alert(dados.erro); }
-                } catch (erro) { alert('Erro de conexão.'); }
+            if(confirm('Apagar?')) {
+                const res = await fetch(`http://localhost:3000/admin/voluntarios/${id}`, { method: 'DELETE' });
+                if(res.ok) { alert('Excluído!'); carregarVoluntariosAdmin(); }
             }
         }
 
-        // --- 5. ABA 3: PADRINHOS (AGORA COM DATA) ---
-        async function carregarPadrinhos() {
-            try {
-                const resposta = await fetch('http://localhost:3000/admin/padrinhos');
-                const padrinhos = await resposta.json();
-                const tbody = document.getElementById('tabela-padrinhos-admin');
-                tbody.innerHTML = '';
-
-                if (padrinhos.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum padrinho cadastrado.</td></tr>';
-                    return;
-                }
-
-                padrinhos.forEach(p => {
-                    let nomeExibicao = p.nome === 'Doador Anônimo' ? `<i style="color:#888;">👤 Doador Anônimo</i>` : `<strong>${p.nome}</strong>`;
-                    
-                    // --- NOVA LÓGICA DE FORMATAÇÃO DA DATA ---
-                    let dataFormatada = '-';
-                    if (p.data_doacao) {
-                        const dataObj = new Date(p.data_doacao);
-                        dataFormatada = new Date(dataObj.getTime() + Math.abs(dataObj.getTimezoneOffset()*60000)).toLocaleDateString('pt-BR');
-                    }
-
-                    const linha = `
-                        <tr>
-                            <td>${nomeExibicao}</td>
-                            <td>${p.telefone || '-'}</td>
-                            <td>${dataFormatada}</td> <td>${p.observacoes || '-'}</td>
-                            <td style="text-align: center;">
-                                <button class="btn-apagar" onclick="apagarPadrinho(${p.id})">🗑️ Apagar</button>
-                            </td>
-                        </tr>
-                    `;
-                    tbody.insertAdjacentHTML('beforeend', linha);
-                });
-            } catch (erro) { alert('Erro ao carregar a lista de padrinhos.'); }
+        async function apagarPadrinho(id) {
+            if(confirm('Apagar?')) {
+                const res = await fetch(`http://localhost:3000/admin/padrinhos/${id}`, { method: 'DELETE' });
+                if(res.ok) { alert('Excluído!'); carregarPadrinhos(); }
+            }
         }
 
         function abrirModalPadrinho() { document.getElementById('modalPadrinho').style.display = 'block'; }
-        function fecharModalPadrinho() { 
-            document.getElementById('modalPadrinho').style.display = 'none'; 
-            document.getElementById('formPadrinho').reset();
-            alternarCampoNome();
-        }
-
+        function fecharModalPadrinho() { document.getElementById('modalPadrinho').style.display = 'none'; document.getElementById('formPadrinho').reset(); }
+        function abrirModalNovoVoluntario() { document.getElementById('modalVoluntario').style.display = 'block'; }
+        function fecharModalVoluntario() { document.getElementById('modalVoluntario').style.display = 'none'; document.getElementById('formVoluntario').reset(); }
         function alternarCampoNome() {
-            const ehAnonimo = document.getElementById('eh_anonimo').checked;
-            const divNome = document.getElementById('div-nome-padrinho');
-            const inputNome = document.getElementById('nome_padrinho');
-            if (ehAnonimo) { divNome.style.display = 'none'; inputNome.value = ''; } 
-            else { divNome.style.display = 'block'; }
+            const anon = document.getElementById('eh_anonimo').checked;
+            document.getElementById('div-nome-padrinho').style.display = anon ? 'none' : 'block';
         }
 
-        document.getElementById('formPadrinho').addEventListener('submit', async function(evento) {
-            evento.preventDefault();
-            const pacote = {
-                eh_anonimo: document.getElementById('eh_anonimo').checked,
-                nome: document.getElementById('nome_padrinho').value,
-                telefone: document.getElementById('telefone_padrinho').value,
-                data_doacao: document.getElementById('data_doacao').value, // <--- CAMPO DE DATA ENVIADO
-                observacoes: document.getElementById('obs_padrinho').value
-            };
-
-            if (!pacote.eh_anonimo && pacote.nome.trim() === '') {
-                alert('⚠️ Por favor, preencha o nome do padrinho, ou marque a opção "Doador Anônimo".');
-                document.getElementById('nome_padrinho').focus();
-                return;
-            }
-
-            try {
-                const resposta = await fetch('http://localhost:3000/admin/padrinhos', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
-                });
-                if (resposta.ok) {
-                    alert('🎉 Padrinho salvo com sucesso!');
-                    fecharModalPadrinho();
-                    carregarPadrinhos(); 
-                } else { alert('Erro ao salvar. Verifique os dados.'); }
-            } catch (erro) { alert('Erro de conexão com o servidor.'); }
-        });
-
-        async function apagarPadrinho(id) {
-            if (confirm('⚠️ Tem certeza? As crianças atreladas a ele voltarão a ficar "Aguardando Padrinho".')) {
-                try {
-                    const resposta = await fetch(`http://localhost:3000/admin/padrinhos/${id}`, { method: 'DELETE' });
-                    if (resposta.ok) { alert('✅ Padrinho excluído.'); carregarPadrinhos(); }
-                } catch (erro) { alert('Erro ao excluir.'); }
-            }
-        }
-
-        // --- 6. FECHAR MODAIS CLICANDO FORA ---
-        window.onclick = function(evento) {
-            const modalPadrinho = document.getElementById('modalPadrinho');
-            const modalVoluntario = document.getElementById('modalVoluntario');
-            if (evento.target === modalPadrinho) fecharModalPadrinho();
-            if (evento.target === modalVoluntario) fecharModalVoluntario();
-        }
-
-        // Inicia a primeira tela
         prepararTelaDistribuicao();
     </script>
 </body>

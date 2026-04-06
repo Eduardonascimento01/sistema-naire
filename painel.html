@@ -7,69 +7,94 @@
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 0; margin: 0; }
         
-        /* MUDANÇA 1: LOGO COM A FLOR NAIRE */
+        /* NAVBAR */
         .navbar { background-color: #343a40; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .navbar-logo { font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        .flor-logo { width: 25px; height: 26px; } /* Estilo da flor no logo */
-        
+        .flor-logo { width: 30px; height: 30px; border-radius: 5px; } 
         .navbar-links { display: flex; gap: 15px; align-items: center; }
         .nav-btn { background-color: transparent; color: white; border: 1px solid transparent; padding: 8px 12px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px; transition: 0.3s; }
-        .nav-btn:hover { background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
-        .nav-btn.destaque { background-color: #28a745; font-weight: bold; border: none; }
-        .nav-btn.destaque:hover { background-color: #218838; }
-        .nav-btn.admin { background-color: #ffc107; color: #333; font-weight: bold; border: none; }
-        .nav-btn.admin:hover { background-color: #e0a800; }
-        .nav-btn.sair { background-color: #dc3545; border: none; }
-        .nav-btn.sair:hover { background-color: #c82333; }
+        .nav-btn.destaque { background-color: #28a745; font-weight: bold; }
+        .nav-btn.admin { background-color: #ffc107; color: #333; font-weight: bold; }
+        .nav-btn.sair { background-color: #dc3545; }
 
-        .painel-caixa { background: white; padding: 30px; border-radius: 10px; max-width: 950px; margin: 30px auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .painel-caixa { background: white; padding: 30px; border-radius: 10px; max-width: 1050px; margin: 30px auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         h2 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0;}
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        /* ESTILOS DO DASHBOARD */
+        .dashboard-container { display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; margin-top: 8px; }
+        .cartao-dash { background: #fdfdfd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); text-align: center; border: 2px solid #eee; width: 200px; height: 70px; display: flex; flex-direction: column; justify-content: center; }
+        .cartao-dash h3 { margin: 0; font-size: 13px; color: #777; text-transform: uppercase; letter-spacing: 1px; }
+        .cartao-dash p { margin: 10px 0 0 0; font-size: 28px; font-weight: bold; color: #333; }
+        .cartao-dash.familias { border-bottom: 5px solid #007bff; }
+        .cartao-dash.criancas { border-bottom: 5px solid #17a2b8; }
+        .cartao-dash.apadrinhadas { border-bottom: 5px solid #28a745; }
+
+        /* TABELA */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: middle; }
         th { background-color: #007bff; color: white; }
-        tr:hover { background-color: #f1f1f1; }
 
-        /* MUDANÇA 3: BOTÕES DE AÇÃO UM AO LADO DO OUTRO */
-        .container-acoes {
-            display: flex;
-            gap: 5px; /* Espaço entre os botões */
-            justify-content: center; /* Centraliza o grupo de botões na célula */
-        }
-
-        .btn-acao { padding: 6px 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; color: white; transition: 0.3s; }
+        /* BOTOES E BADGES */
+        .container-acoes { display: flex; gap: 8px; white-space: nowrap; justify-content: center;}
+        .btn-acao { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; color: white; }
         .btn-detalhes { background-color: #17a2b8; }
-        .btn-detalhes:hover { background-color: #138496; }
         .btn-editar { background-color: #ffc107; color: #333; }
-        .btn-editar:hover { background-color: #e0a800; }
         .btn-apagar { background-color: #dc3545; }
-        .btn-apagar:hover { background-color: #c82333; }
-        
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
-        .modal-conteudo { background-color: white; margin: 5% auto; padding: 25px; border-radius: 10px; width: 90%; max-width: 750px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 85vh; overflow-y: auto;}
-        .fechar { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .fechar:hover { color: black; }
-        .info-grupo { margin-bottom: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 5px solid #007bff; }
-        .badge { background: #28a745; color: white; padding: 6px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; display: inline-block;}
+        .badge { background: #28a745; color: white; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; }
         .badge-alerta { background: #ffc107; color: #333; }
         .badge-erro { background: #dc3545; color: white; }
-        .select-padrinho { padding: 6px; border-radius: 4px; border: 1px solid #ccc; max-width: 300px; width: 100%; }
-        .flor-badge { width: 14px; height: 14px; vertical-align: middle; margin-right: 4px; } /* Flor dentro do badge */
+
+        /* MODAIS */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
+        .modal-conteudo { background-color: white; margin: 5% auto; padding: 25px; border-radius: 10px; width: 90%; max-width: 700px; max-height: 85vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .fechar { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .info-grupo { margin-bottom: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 5px solid #007bff; }
+        input.modal-input { width: 100%; padding: 8px; margin: 5px 0 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;}
+        .select-padrinho { padding: 6px; border-radius: 4px; border: 1px solid #ccc; width: 100%; max-width: 250px;}
     </style>
 </head>
 <body>
 
     <div class="navbar">
         <div class="navbar-logo">
-            <img src="FlorNaire.jpg" alt="Flor NAIRE" class="flor-logo">
-            INSTITUTO NAIRE
+            <img src="LogoInstitutoNaire02.jpeg" alt="Logo" class="flor-logo">
+            ONG NAIRE
         </div>
         <div class="navbar-links" id="menu-dinamico"></div>
     </div>
 
     <div class="painel-caixa">
-        <h2 id="titulo-tabela">Famílias Cadastradas</h2>
-        <p id="mensagem-boas-vindas" style="color: #666; margin-top: -5px; margin-bottom: 20px;"></p>
+        <div style="display: flex; align-items: center; gap: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
+            <div style="position: relative;">
+                <span style="position: absolute; left: 12px; top: 10px; font-size: 16px;">🔍</span>
+                <input type="text" id="input-busca" placeholder="Buscar mãe ou criança..." onkeyup="filtrarTabela()" style="padding: 10px 10px 10px 35px; border: 1px solid #ccc; border-radius: 20px; width: 250px; outline: none; font-size: 14px;">
+            </div>
+            <div style="flex: 1;">
+                <h2 id="titulo-tabela" style="border: none; padding: 0; margin: 0;">Famílias Cadastradas</h2>
+                <p id="mensagem-boas-vindas" style="color: #666; margin-top: 5px; margin-bottom: 0; font-size: 14px;"></p>
+            </div>
+            <div style="background: #e9ecef; padding: 10px 15px; border-radius: 8px; border: 1px solid #ccc; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+                <label style="font-weight: bold; font-size: 14px; color: #333;">🎁 Evento Entrega:</label>
+                <select id="select-evento" onchange="ativarModoEntrega()" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; margin-left: 5px; outline: none;">
+                    <option value="">-- Eventos --</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="dashboard-container">
+            <div class="cartao-dash familias">
+                <h3>Famílias Cadastradas</h3>
+                <p id="dash-familias">0</p>
+            </div>
+            <div class="cartao-dash criancas">
+                <h3>Crianças Atendidas</h3>
+                <p id="dash-criancas">0</p>
+            </div>
+            <div class="cartao-dash apadrinhadas">
+                <h3>Crianças Apadrinhadas</h3>
+                <p id="dash-apadrinhadas">0</p>
+            </div>
+        </div>
 
         <table>
             <thead>
@@ -92,12 +117,22 @@
             <span class="fechar" onclick="fecharModal()">&times;</span>
             <h2 id="modal-nome-mae" style="margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">Nome da Mãe</h2>
             
-            <div class="info-grupo">
-                <strong>📋 Dados do Responsável:</strong><br><br>
-                <b>CPF:</b> <span id="modal-cpf"></span> <br>
-                <b>Endereço:</b> <span id="modal-endereco"></span> <br>
-                <b>Telefone:</b> <span id="modal-telefone"></span> <br><br>
-                <strong>🤝 Voluntário Acompanhante:</strong> <span id="modal-voluntario" class="badge"></span>
+           <div class="info-grupo" style="border-left-color: #007bff;">
+                <div style="display: flex; gap: 20px; align-items: flex-start;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <img id="modal-foto-mae" src="icon-mae.png" alt="Foto da Mãe" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #ccc; background: #eee;">
+                        <button id="btn-mudar-foto-mae" class="btn-acao" style="background-color: #6c757d; font-size: 11px; padding: 4px 8px; border: none; border-radius: 5px; cursor: pointer; color: white;">📷 Mudar Foto</button>
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <strong>📋 Dados do Responsável:</strong><br><br>
+                        <b>CPF:</b> <span id="modal-cpf"></span> <br>
+                        <b>Endereço:</b> <span id="modal-endereco"></span> <br>
+                        <b>Telefone:</b> <span id="modal-telefone"></span> <br><br>
+                        <strong>🤝 Voluntário Acompanhante:</strong> <span id="modal-voluntario" class="badge"></span> <br><br>
+                        <strong>Participa de outra ONG?</strong> <span id="modal-outra-ong" style="color: #007bff; font-weight: bold;"></span>
+                    </div>
+                </div>
             </div>
 
             <div class="info-grupo" style="border-left-color: #17a2b8;">
@@ -107,142 +142,518 @@
         </div>
     </div>
 
+    <div id="modalEditar" class="modal">
+        <div class="modal-conteudo">
+            <span class="fechar" onclick="fecharModalEditar()">&times;</span>
+            <h2 style="margin-top: 0; border-bottom: 2px solid #ffc107; padding-bottom: 10px;">✏️ Editar Família</h2>
+            <form id="formEditarFamilia">
+                <input type="hidden" id="edit-id">
+                
+                <div class="info-grupo">
+                    <label><b>Nome da Responsável:</b></label>
+                    <input type="text" id="edit-nome" class="modal-input">
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;"><label><b>CPF:</b></label><input type="text" id="edit-cpf" class="modal-input"></div>
+                        <div style="flex: 1;"><label><b>Título / Vota:</b></label><input type="text" id="edit-titulo" class="modal-input"></div>
+                    </div>
+                </div>
+
+                <div class="info-grupo" style="border-left-color: #28a745;">
+                    <label><b>Endereço Completo:</b></label><input type="text" id="edit-endereco" class="modal-input">
+                    <label><b>Telefones de Contato:</b></label><input type="text" id="edit-telefone" class="modal-input">
+                </div>
+
+                <div class="info-grupo" style="border-left-color: #17a2b8;">
+                    <div style="display: flex; gap: 15px;">
+                        <div style="flex: 1;">
+                            <label><b>Mãe trabalha?</b></label>
+                            <input type="text" id="edit-mae-trab" class="modal-input">
+                        </div>
+                        <div style="flex: 1;">
+                            <label><b>Pai trabalha?</b></label>
+                            <input type="text" id="edit-pai-trab" class="modal-input">
+                        </div>
+                        <div style="flex: 2;">
+                            <label><b>Outra ONG? Qual?</b></label>
+                            <input type="text" id="edit-outra-ong" class="modal-input" placeholder="Deixe em branco se não">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-acao" style="background-color: #28a745; width: 100%; padding: 12px; font-size: 16px;">💾 Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+    <div id="modalNovaCrianca" class="modal">
+        <div class="modal-conteudo" style="max-width: 500px;">
+            <span class="fechar" onclick="fecharModalNovaCrianca()">&times;</span>
+            <h2 style="margin-top: 0; border-bottom: 2px solid #28a745; padding-bottom: 10px;">👶 Registrar Novo Filho</h2>
+            <form id="formNovaCrianca">
+                <input type="hidden" id="nova-crianca-familia-id">
+                
+                <div class="info-grupo">
+                    <label>Nome Completo: *</label>
+                    <input type="text" id="nova-crianca-nome" class="modal-input" required>
+                    
+                    <label>Data de Nascimento: *</label>
+                    <input type="date" id="nova-crianca-data" class="modal-input" required>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;"><label>Roupa:</label><input type="text" id="nova-crianca-roupa" class="modal-input"></div>
+                        <div style="flex: 1;"><label>Sapato:</label><input type="text" id="nova-crianca-sapato" class="modal-input"></div>
+                        <div style="flex: 1;">
+                            <label>Sexo: *</label>
+                            <select id="nova-crianca-sexo" class="modal-input" required style="padding: 9px;">
+                                <option value="">--</option>
+                                <option value="M">M</option>
+                                <option value="F">F</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-acao" style="background-color: #28a745; width: 100%; padding: 12px; font-size: 16px;">💾 Salvar Criança</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         const nomeLogado = localStorage.getItem('nomeVoluntario');
         const nivelAcesso = localStorage.getItem('nivelAcesso'); 
         const idLogado = localStorage.getItem('idVoluntario'); 
 
-        if (!nomeLogado) {
-            alert('Acesso negado!'); window.location.href = 'login.html';
-        }
+        if (!nomeLogado) { window.location.href = 'login.html'; }
 
         function montarMenu() {
             const menuContainer = document.getElementById('menu-dinamico');
-            let htmlMenu = '';
+            let html = '';
+            
+            // Só o Admin vê o botão de configurações
             if (nivelAcesso === 'admin') {
-                htmlMenu += `<a href="painel-admin.html" class="nav-btn admin">⚙️ Painel Admin</a>`;
-                document.getElementById('titulo-tabela').innerText = 'Todas as Famílias da ONG';
-            } else {
-                document.getElementById('titulo-tabela').innerText = 'Minhas Famílias';
+                html += `<a href="painel-admin.html" class="nav-btn admin">⚙️ Admin</a>`;
             }
-            htmlMenu += `
-                <a href="cadastro.html" class="nav-btn destaque">➕ Novo Cadastro</a>
-                <button onclick="sairDoSistema()" class="nav-btn sair">🚪 Sair</button>
-            `;
-            menuContainer.innerHTML = htmlMenu;
-            document.getElementById('mensagem-boas-vindas').innerHTML = `Olá, <strong>${nomeLogado}</strong>.`;
+            
+            document.getElementById('titulo-tabela').innerText = 'Todas as Famílias da ONG';
+            
+       
+            html += `<a href="cadastro.html" class="nav-btn destaque">➕ Novo Cadastro</a><button onclick="sairDoSistema()" class="nav-btn sair">Sair</button>`;
+            menuContainer.innerHTML = html;
+            document.getElementById('mensagem-boas-vindas').innerHTML = `Olá, <b>${nomeLogado}</b>`;
         }
 
-        function sairDoSistema() { localStorage.clear(); window.location.href = 'login.html'; }
-
-        async function carregarFamilias() {
+       async function carregarFamilias() {
             try {
-                let urlBusca = 'http://localhost:3000/familias';
-                if (nivelAcesso !== 'admin') urlBusca += `?voluntario_id=${idLogado}`;
+                const url = 'http://localhost:3000/familias';
+                const res = await fetch(url);
+                const familias = await res.json();
+                
+                const tbody = document.getElementById('tabela-familias');
+                tbody.innerHTML = '';
 
-                const resposta = await fetch(urlBusca);
-                const familias = await resposta.json();
-                const corpoTabela = document.getElementById('tabela-familias');
-                corpoTabela.innerHTML = ''; 
+                // VARIÁVEIS DO DASHBOARD ZERADAS
+                let somaFamilias = 0;
+                let somaCriancas = 0;
+                let somaApadrinhadas = 0;
 
-                familias.forEach(familia => {
-                    const totalFilhos = Number(familia.total_filhos) || 0;
-                    const apadrinhados = Number(familia.apadrinhados) || 0;
+                familias.forEach(f => {
+                    const isArquivada = f.status === 'inativo';
+                    const total = Number(f.total_filhos) || 0;
+                    const apad = Number(f.apadrinhados) || 0;
                     
-                    // MUDANÇA 1: EMOJI DE FLOR NAIRE NOS BADGES
-                    const florNaireHtml = `<img src="LogoInstitutoNaire02.jpeg" alt="Flor" class="flor-badge">`;
+                    // SÓ SOMA NO DASHBOARD SE A FAMÍLIA ESTIVER ATIVA
+                    if (!isArquivada) {
+                        somaFamilias++;
+                        somaCriancas += total;
+                        somaApadrinhadas += apad;
+                    }
 
-                    let badgeStatus = totalFilhos === 0 ? 'Sem crianças' : 
-                                     (apadrinhados === totalFilhos ? `<span class="badge">${florNaireHtml} 100%</span>` : 
-                                     (apadrinhados > 0 ? `<span class="badge badge-alerta">${florNaireHtml} ${apadrinhados}/${totalFilhos}</span>` : 
-                                     `<span class="badge badge-erro">❌ 0/${totalFilhos}</span>`));
+                    let status = total === 0 ? 'Sem crianças' : 
+                                (apad === total ? `<span class="badge">100%</span>` : 
+                                (apad > 0 ? `<span class="badge badge-alerta">${apad}/${total}</span>` : `<span class="badge badge-erro">0/${total}</span>`));
+            
+                    // INTELIGÊNCIA DO MODO ENTREGA
+                    let btnEntrega = '';
+                    if (modoEntregaAtivo && !isArquivada) { // Não faz entrega pra família arquivada
+                        if (familiasComEntrega.includes(f.id)) {
+                            btnEntrega = `<button class="btn-acao" style="background-color: #28a745; cursor: default;">✅ Entregue</button>`;
+                        } else {
+                            btnEntrega = `<button class="btn-acao" style="background-color: #007bff;" onclick="registrarEntrega(${f.id})">🎁 Dar Baixa</button>`;
+                        }
+                    }
 
-                    const linha = `
-                        <tr>
-                            <td><strong>${familia.nome_mae}</strong></td>
-                            <td>${familia.cpf || '-'}</td>
-                            <td>${familia.fones_contato || '-'}</td>
-                            <td style="text-align: center;">${badgeStatus}</td>
-                            <td style="text-align: center;">
-                                <div class="container-acoes">
-                                    <button class="btn-acao btn-detalhes" onclick="abrirFichaCompleta(${familia.id})" title="Ver Detalhes">👁️Detalhes</button>
-                                    <button class="btn-acao btn-editar" onclick="editarFamilia(${familia.id})" title="Editar Mãe">✏️Editar</button>
-                                    ${nivelAcesso === 'admin' ? `<button class="btn-acao btn-apagar" onclick="apagarFamilia(${familia.id})" title="Excluir Família">🗑️Excluir</button>` : ''}
+                    // TEXTOS E SELOS DE VALIDAÇÃO
+                    let textoValidado = "✅ Ativada";
+                    let textoPendente = "⏳ Pendente";
+                    let estiloSelo = f.validado ? 
+                        "background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px; border: none; font-weight: bold;" : 
+                        "background: #ffc107; color: #333; padding: 4px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px; border: none; font-weight: bold;";
+                    
+                    let seloValidacao = "";
+                    
+                    if (!isArquivada) {
+                        if (nivelAcesso === 'admin') {
+                            seloValidacao = `<button onclick="alternarValidacao(${f.id})" style="${estiloSelo} cursor: pointer;" title="Clique para alterar">${f.validado ? textoValidado : textoPendente}</button>`;
+                        } else {
+                            seloValidacao = `<span style="${estiloSelo}">${f.validado ? textoValidado : textoPendente}</span>`;
+                        }
+                    }
+                                        
+                    // 👉 ÍCONE DE ARQUIVADA E CONTROLE VISUAL
+                    let iconeArquivada = isArquivada ? `<span class="badge" style="background-color: #6c757d; margin-left: 5px;">📦 Inativo</span>` : '';
+                    let displayLinha = isArquivada ? 'none' : 'table-row'; // Esconde as arquivadas por padrão
+                    let classeExtra = isArquivada ? 'arquivada' : 'ativa';
+
+                    let botoesAcao = '';
+                    if (isArquivada) {
+                        botoesAcao = `<button class="btn-acao btn-detalhes" onclick="abrirFichaCompleta(${f.id})">👁️ Detalhes</button>`;
+                    } else {
+                        botoesAcao = `
+                            ${btnEntrega}
+                            <button class="btn-acao btn-detalhes" onclick="abrirFichaCompleta(${f.id})">👁️ Detalhes</button>
+                            ${nivelAcesso === 'admin' ? `<button class="btn-acao btn-editar" onclick="editarFamilia(${f.id})">✏️ Editar</button>` : ''}
+                            ${nivelAcesso === 'admin' ? `<button class="btn-acao" style="background-color: #6c757d;" onclick="apagarFamilia(${f.id})">📦 Arquivar</button>` : ''}
+                        `;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="linha-familia ${classeExtra}" data-nomes="${f.nome_mae.toLowerCase()} ${f.nomes_criancas ? f.nomes_criancas.toLowerCase() : ''}" style="display: ${displayLinha};">
+                            <td>
+                                <b>${f.nome_mae}</b><br>
+                                <div style="margin-top: 5px;">
+                                ${seloValidacao} ${iconeArquivada}
                                 </div>
                             </td>
-                        </tr>
-                    `;
-                    corpoTabela.insertAdjacentHTML('beforeend', linha);
-                });
-            } catch (e) { console.error(e); }
-        }
-
-        async function abrirFichaCompleta(idFamilia) {
-            try {
-                const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}`);
-                const dados = await resposta.json();
-                const resPadrinhos = await fetch('http://localhost:3000/admin/padrinhos');
-                const listaPadrinhos = await resPadrinhos.json();
-
-                document.getElementById('modal-nome-mae').innerText = dados.responsavel.nome_mae;
-                document.getElementById('modal-cpf').innerText = dados.responsavel.cpf || '-';
-                document.getElementById('modal-endereco').innerText = dados.responsavel.endereco || '-';
-                document.getElementById('modal-telefone').innerText = dados.responsavel.fones_contato || '-';
-                document.getElementById('modal-voluntario').innerText = dados.responsavel.nome_voluntario_responsavel || 'Sem vínculo';
-
-                const listaMenores = document.getElementById('lista-menores-modal');
-                listaMenores.innerHTML = ''; 
-                
-                if (dados.menores.length === 0) {
-                    listaMenores.innerHTML = '<li>Nenhuma criança cadastrada.</li>';
-                } else {
-                    dados.menores.forEach(c => {
-                        let opcoesPadrinho = `<option value="">-- Aguardando Padrinho --</option>`;
-                        listaPadrinhos.forEach(p => {
-                            opcoesPadrinho += `<option value="${p.id}" ${p.id === c.padrinho_id ? 'selected' : ''}>${p.nome}</option>`;
-                        });
-
-                        listaMenores.innerHTML += `
-                            <li style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                <strong>${c.nome_completo}</strong><br>
-                                <span style="font-size: 13px; color: #555;">
-                                    Roupa: ${c.tamanho_roupa || '-'} | Sapato: ${c.tamanho_sapato || '-'}
-                                </span>
-                                <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
-                                    <select id="select-padrinho-${c.id}" class="select-padrinho">${opcoesPadrinho}</select>
-                                    <button class="btn-acao btn-detalhes" style="background-color: #28a745;" onclick="salvarMatch(${c.id}, ${idFamilia})" title="Salvar Padrinho">💾</button>
+                            <td>${f.cpf || '-'}</td>
+                            <td>${f.fones_contato || '-'}</td>
+                            <td align="center">${status}</td>
+                            <td align="center">
+                                <div class="container-acoes">
+                                    ${botoesAcao}
                                 </div>
-                            </li>`;
-                    });
-                }
-                document.getElementById('modalFicha').style.display = 'block';
-            } catch (erro) { alert("Erro ao buscar detalhes."); }
+                            </td>
+                        </tr>`;
+                });
+                
+                document.getElementById('dash-familias').innerText = somaFamilias;
+                document.getElementById('dash-criancas').innerText = somaCriancas;
+                document.getElementById('dash-apadrinhadas').innerText = somaApadrinhadas;
+
+            } catch (e) { console.error("Erro ao carregar famílias:", e); }
+        }
+       // --- FUNÇÕES DA FICHA COMPLETA E EDIÇÃO ---
+        async function abrirFichaCompleta(idFamilia) {
+            const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}`);
+            const dados = await resposta.json();
+            const resPadrinhos = await fetch('http://localhost:3000/admin/padrinhos');
+            const listaPadrinhos = await resPadrinhos.json();
+            const isArquivada = dados.responsavel.status === 'inativo';
+
+            // Manda o JavaScript apenas trocar a foto (sem criar caixas novas)
+            const fotoMae = dados.responsavel.foto_url ? dados.responsavel.foto_url : 'icon-mae.png';
+            document.getElementById('modal-foto-mae').src = fotoMae;
+
+            document.getElementById('modal-nome-mae').innerText = dados.responsavel.nome_mae;
+            document.getElementById('modal-cpf').innerText = dados.responsavel.cpf || '-';
+            document.getElementById('modal-endereco').innerText = dados.responsavel.endereco || '-';
+            document.getElementById('modal-telefone').innerText = dados.responsavel.fones_contato || '-';
+            document.getElementById('modal-voluntario').innerText = dados.responsavel.nome_voluntario_responsavel || 'Sem vínculo';
+            document.getElementById('modal-outra-ong').innerText = dados.responsavel.outra_ong || 'Não participa de outra ONG';
+
+            // Esconde ou mostra o botão de mudar foto da mãe
+            const btnFoto = document.getElementById('btn-mudar-foto-mae');
+            if (isArquivada) {
+                btnFoto.style.display = 'none';
+            } else {
+                btnFoto.style.display = 'block';
+                btnFoto.onclick = () => mudarFotoMae(idFamilia);
+            }
+
+            const listaM = document.getElementById('lista-menores-modal');
+            listaM.innerHTML = ''; 
+            
+            if (dados.menores.length === 0) {
+                listaM.innerHTML = '<li style="padding: 10px;">Nenhuma criança cadastrada.</li>';
+            } else {
+                dados.menores.forEach(c => {
+                    let controlePadrinho = '';
+                    
+                    if (isArquivada) {
+                        let nomePadrinhoVisual = c.nome_padrinho ? c.nome_padrinho : 'Sem padrinho vinculado';
+                        controlePadrinho = `<div style="margin-top: 5px; font-size: 13px; color: #333;"><b>🎁 Padrinho:</b> ${nomePadrinhoVisual}</div>`;
+                    } else {
+                        let opts = `<option value="">-- Aguardando --</option>`;
+                        listaPadrinhos.forEach(p => opts += `<option value="${p.id}" ${p.id === c.padrinho_id ? 'selected' : ''}>${p.nome}</option>`);
+                        controlePadrinho = `
+                            <div style="margin-top:10px; display: flex; gap: 10px;">
+                                <select class="select-padrinho" id="select-padrinho-${c.id}" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc; width: 100%; max-width: 250px;">${opts}</select>
+                                <button class="btn-acao" style="background-color: #28a745; padding: 6px 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; color: white;" onclick="salvarMatch(${c.id}, ${idFamilia})">💾 Salvar Padrinho</button>
+                            </div>
+                        `;
+                    }
+                    
+                    const fotoC = c.foto_url ? c.foto_url : 'icon-crianca.png';
+
+                    listaM.innerHTML += `
+                        <li style="background:#fff; padding:15px; margin-bottom:10px; border-radius:5px; border-left: 4px solid #17a2b8; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 15px; align-items: flex-start;">
+                            
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <img id="modal-foto-crianca-${c.id}" src="${fotoC}" alt="Foto da Criança" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px; border: 1px solid #ccc; background: #eee;">
+                                ${!isArquivada ? `<button class="btn-acao" style="background-color: #6c757d; font-size: 10px; padding: 4px;" onclick="mudarFotoCrianca(${c.id})">📷 Mudar Foto</button>` : ''}
+                            </div>
+                            
+                            <div style="flex: 1;">
+                                <strong>${c.nome_completo} (${c.sexo || '-'})</strong><br>
+                                <span style="font-size: 13px; color: #555;">Roupa: ${c.tamanho_roupa || '-'} | Sapato: ${c.tamanho_sapato || '-'}</span>
+                                ${controlePadrinho}
+                            </div>
+                        </li>`;
+                });
+            }
+            
+            if (!isArquivada) {
+                listaM.innerHTML += `
+                    <button class="btn-acao" style="background-color: #007bff; width: 100%; padding: 10px; font-size: 14px; margin-top: 10px; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="abrirModalNovaCrianca(${idFamilia})">
+                        ➕ Adicionar Novo Filho
+                    </button>
+                `;
+            }
+
+            document.getElementById('modalFicha').style.display = 'block';
         }
 
-        async function salvarMatch(idCrianca, idFamilia) {
-            const padrinhoEscolhido = document.getElementById(`select-padrinho-${idCrianca}`).value;
-            await fetch('http://localhost:3000/vincular-padrinho', {
-                method: 'PUT',
+        // --- AS DUAS FUNÇÕES QUE COMUNICAM COM O BANCO ---
+        async function mudarFotoMae(idFamilia) {
+            let novaFoto = prompt("Digite o nome exato do arquivo (ex: familia-silva.jpg) ou cole o link de uma imagem:");
+            if (novaFoto && novaFoto.trim() !== '') {
+                try {
+                    await fetch(`http://localhost:3000/familias/${idFamilia}/foto`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ foto_url: novaFoto })
+                    });
+                    document.getElementById('modal-foto-mae').src = novaFoto;
+                } catch (e) { alert("Erro ao salvar a foto!"); }
+            }
+        }
+
+        async function mudarFotoCrianca(idCrianca) {
+            let novaFoto = prompt("Digite o nome exato do arquivo (ex: joaozinho.jpg) ou cole o link de uma imagem:");
+            if (novaFoto && novaFoto.trim() !== '') {
+                try {
+                    await fetch(`http://localhost:3000/menores/${idCrianca}/foto`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ foto_url: novaFoto })
+                    });
+                    document.getElementById(`modal-foto-crianca-${idCrianca}`).src = novaFoto;
+                } catch (e) { alert("Erro ao salvar a foto!"); }
+            }
+        }
+
+        // --- LÓGICA DO NOVO FILHO (Agora separada e segura) ---
+        function abrirModalNovaCrianca(idFamilia) {
+            document.getElementById('nova-crianca-familia-id').value = idFamilia;
+            document.getElementById('modalNovaCrianca').style.display = 'block';
+        }
+
+        function fecharModalNovaCrianca() {
+            document.getElementById('modalNovaCrianca').style.display = 'none';
+            document.getElementById('formNovaCrianca').reset(); // Limpa o formulário
+        }
+
+        document.getElementById('formNovaCrianca').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const idFamilia = document.getElementById('nova-crianca-familia-id').value;
+            
+            const novaCrianca = {
+                nome: document.getElementById('nova-crianca-nome').value,
+                data: document.getElementById('nova-crianca-data').value,
+                roupa: document.getElementById('nova-crianca-roupa').value,
+                sapato: document.getElementById('nova-crianca-sapato').value,
+                sexo: document.getElementById('nova-crianca-sexo').value
+            };
+
+            const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}/criancas`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ crianca_id: idCrianca, padrinho_id: padrinhoEscolhido || null })
+                body: JSON.stringify(novaCrianca)
             });
-            alert('✅ Apadrinhamento salvo!');
-            abrirFichaCompleta(idFamilia); 
-            carregarFamilias();
+
+            if (resposta.ok) {
+                alert('👶 Criança adicionada com sucesso!');
+                fecharModalNovaCrianca();
+                abrirFichaCompleta(idFamilia); 
+                carregarFamilias(); 
+            } else {
+                alert('Erro ao salvar a criança.');
+            }
+        });
+
+        // --- LÓGICA DO NOVO FILHO ---
+        function abrirModalNovaCrianca(idFamilia) {
+            document.getElementById('nova-crianca-familia-id').value = idFamilia;
+            document.getElementById('modalNovaCrianca').style.display = 'block';
+        }
+
+        function fecharModalNovaCrianca() {
+            document.getElementById('modalNovaCrianca').style.display = 'none';
+            document.getElementById('formNovaCrianca').reset(); // Limpa o formulário
+        }
+
+        document.getElementById('formNovaCrianca').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const idFamilia = document.getElementById('nova-crianca-familia-id').value;
+            
+            const novaCrianca = {
+                nome: document.getElementById('nova-crianca-nome').value,
+                data: document.getElementById('nova-crianca-data').value,
+                roupa: document.getElementById('nova-crianca-roupa').value,
+                sapato: document.getElementById('nova-crianca-sapato').value,
+                sexo: document.getElementById('nova-crianca-sexo').value
+            };
+
+            const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}/criancas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(novaCrianca)
+            });
+
+            if (resposta.ok) {
+                alert('👶 Criança adicionada com sucesso!');
+                fecharModalNovaCrianca();
+                abrirFichaCompleta(idFamilia); 
+                carregarFamilias(); 
+            } else {
+                alert('Erro ao salvar a criança.');
+            }
+        });
+    
+        async function editarFamilia(id) {
+            const res = await fetch(`http://localhost:3000/familias/${id}`);
+            const dados = await res.json();
+            const r = dados.responsavel;
+            
+            document.getElementById('edit-id').value = r.id;
+            document.getElementById('edit-nome').value = r.nome_mae;
+            document.getElementById('edit-cpf').value = r.cpf;
+            document.getElementById('edit-titulo').value = r.titulo_eleitor || "";
+            document.getElementById('edit-telefone').value = r.fones_contato;
+            document.getElementById('edit-endereco').value = r.endereco;
+            document.getElementById('edit-mae-trab').value = r.mae_trabalha || "";
+            document.getElementById('edit-pai-trab').value = r.pai_trabalha || "";
+            document.getElementById('edit-outra-ong').value = r.outra_ong || "";
+            document.getElementById('modalEditar').style.display = 'block';
+        }
+
+        document.getElementById('formEditarFamilia').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const dados = {
+                nome_mae: document.getElementById('edit-nome').value,
+                cpf: document.getElementById('edit-cpf').value,
+                titulo_eleitor: document.getElementById('edit-titulo').value,
+                fones_contato: document.getElementById('edit-telefone').value,
+                endereco: document.getElementById('edit-endereco').value,
+                mae_trabalha: document.getElementById('edit-mae-trab').value,
+                pai_trabalha: document.getElementById('edit-pai-trab').value
+            };
+            await fetch(`http://localhost:3000/familias/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
+            alert('✅ Atualizado!'); fecharModalEditar(); carregarFamilias();
+        });
+
+        async function salvarMatch(idC, idF) {
+            const pId = document.getElementById(`select-padrinho-${idC}`).value;
+            await fetch('http://localhost:3000/vincular-padrinho', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ crianca_id: idC, padrinho_id: pId || null }) });
+            alert('✅ Salvo!'); abrirFichaCompleta(idF); carregarFamilias();
+        }
+
+        async function apagarFamilia(id) {
+            if (confirm('📦 Deseja ARQUIVAR esta família? \n\nEla sairá da lista principal, mas o histórico de doações e as crianças continuarão salvas no banco de dados da ONG.')) {
+                await fetch(`http://localhost:3000/familias/${id}?autor=${nomeLogado}`, { method: 'DELETE' });
+                carregarFamilias();
+            }
         }
 
         function fecharModal() { document.getElementById('modalFicha').style.display = 'none'; }
-        window.onclick = function(evento) { if (evento.target === document.getElementById('modalFicha')) fecharModal(); }
+        function fecharModalEditar() { document.getElementById('modalEditar').style.display = 'none'; }
+        function sairDoSistema() { localStorage.clear(); window.location.href = 'login.html'; }
 
-        async function apagarFamilia(idFamilia) {
-            if (confirm('⚠️ Tem certeza que deseja apagar esta família?')) {
-                const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}?autor=${nomeLogado}`, { method: 'DELETE' });
-                if (resposta.ok) { alert('✅ Família excluída!'); carregarFamilias(); } 
+        window.onclick = (e) => { 
+            if (e.target == document.getElementById('modalFicha')) fecharModal();
+            if (e.target == document.getElementById('modalEditar')) fecharModalEditar();
+            if (e.target == document.getElementById('modalNovaCrianca')) fecharModalNovaCrianca();
+        }
+              
+        // --- FUNÇÃO DA BARRA DE PESQUISA ---
+        function filtrarTabela() {
+            let termo = document.getElementById('input-busca').value.toLowerCase();
+            let linhas = document.getElementsByClassName('linha-familia');
+            
+            for (let i = 0; i < linhas.length; i++) {
+                let nomes = linhas[i].getAttribute('data-nomes');
+                let isArquivada = linhas[i].classList.contains('arquivada');
+
+                if (termo === '') {
+                    // Se não buscou nada, esconde as arquivadas e mostra as ativas
+                    linhas[i].style.display = isArquivada ? 'none' : 'table-row';
+                } else {
+                    // Se digitou algo, mostra qualquer linha que bater com a pesquisa (ativa ou arquivada)
+                    if (nomes.includes(termo)) {
+                        linhas[i].style.display = 'table-row';
+                    } else {
+                        linhas[i].style.display = 'none';
+                    }
+                }
             }
         }
-        function editarFamilia(idFamilia) { alert('Função de edição em breve!'); }
+        // --- FUNÇÕES DO MODO DE ENTREGA ---
+        let modoEntregaAtivo = null; 
+        let familiasComEntrega = []; 
 
-        montarMenu(); carregarFamilias();
+        async function carregarEventosDropdown() {
+            const res = await fetch('http://localhost:3000/eventos');
+            const eventos = await res.json();
+            const select = document.getElementById('select-evento');
+            eventos.forEach(e => {
+                select.innerHTML += `<option value="${e.id}">${e.nome}</option>`;
+            });
+        }
+
+        async function ativarModoEntrega() {
+            const eventoId = document.getElementById('select-evento').value;
+            if (!eventoId) {
+                modoEntregaAtivo = null;
+                familiasComEntrega = [];
+                carregarFamilias(); 
+                return;
+            }
+
+            modoEntregaAtivo = eventoId;
+            // Busca no banco quem já pegou a doação neste evento específico
+            const res = await fetch(`http://localhost:3000/eventos/${eventoId}/entregas`);
+            familiasComEntrega = await res.json(); 
+            carregarFamilias();
+        }
+
+        async function registrarEntrega(idFamilia) {
+            if (!modoEntregaAtivo) return;
+            const res = await fetch('http://localhost:3000/entregas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ evento_id: modoEntregaAtivo, familia_id: idFamilia })
+            });
+            
+            if (res.ok) {
+                familiasComEntrega.push(idFamilia); // Adiciona na lista visual
+                carregarFamilias(); // Atualiza a linha para ficar verde (✅ Entregue)
+            }
+        }
+        async function alternarValidacao(id) {
+            await fetch(`http://localhost:3000/admin/familias/${id}/validar`, { method: 'PUT' });
+            carregarFamilias(); // Recarrega a tabela na hora para trocar a cor do selo
+        }
+
+        montarMenu(); carregarFamilias(); carregarEventosDropdown();
     </script>
-</body>
-</html>
+</body> 
+</html>    

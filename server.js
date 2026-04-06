@@ -65,22 +65,45 @@ app.get('/voluntarios', (req, res) => {
     });
 });
 
-// --- 5. ROTA DE CADASTRO DE FAMÍLIAS (Com Transações) ---
+// --- 5. ROTA DE CADASTRO DE FAMÍLIAS ---
 app.post('/cadastro', (req, res) => {
     const { responsavel, menores, voluntario_cadastro_id, voluntario_responsavel_id } = req.body;
     db.beginTransaction((erroTransacao) => {
         if (erroTransacao) return res.status(500).json({ erro: 'Erro na transação.' });
 
-        const sqlMae = 'INSERT INTO responsaveis (nome_mae, rg, cpf, endereco, fones_contato, voluntario_cadastro_id, voluntario_responsavel_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
-        const valoresMae = [responsavel.nome_mae, responsavel.rg, responsavel.cpf, responsavel.endereco, responsavel.fones, voluntario_cadastro_id, voluntario_responsavel_id];
+        const sqlMae = `
+            INSERT INTO responsaveis 
+            (nome_mae, rg, cpf, titulo_eleitor, endereco, fones_contato, mae_trabalha, pai_trabalha, outra_ong, data_cadastro, voluntario_cadastro_id, voluntario_responsavel_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        
+        const valoresMae = [
+            responsavel.nome_mae, 
+            responsavel.rg, 
+            responsavel.cpf, 
+            responsavel.titulo_eleitor, 
+            responsavel.endereco, 
+            responsavel.fones, 
+            responsavel.mae_trabalha, 
+            responsavel.pai_trabalha, 
+            responsavel.outra_ong, 
+            responsavel.data_cadastro, 
+            voluntario_cadastro_id, 
+            voluntario_responsavel_id
+        ];
 
         db.query(sqlMae, valoresMae, (erroMae, resultadoMae) => {
-            if (erroMae) return db.rollback(() => res.status(500).json({ erro: 'Erro ao salvar mãe.' }));
+            if (erroMae) return db.rollback(() => {
+                console.error(erroMae);
+                res.status(500).json({ erro: 'Erro ao salvar responsável.' });
+            });
+            
             const responsavelId = resultadoMae.insertId;
 
             if (menores && menores.length > 0) {
-                const sqlCriancas = 'INSERT INTO menores (responsavel_id, nome_completo, data_nascimento, tamanho_roupa, tamanho_sapato) VALUES ?';
-                const valoresCriancas = menores.map(c => [responsavelId, c.nome, c.data, c.roupa, c.sapato]);
+                const sqlCriancas = 'INSERT INTO menores (responsavel_id, nome_completo, data_nascimento, tamanho_roupa, tamanho_sapato, sexo) VALUES ?';
+                const valoresCriancas = menores.map(c => [responsavelId, c.nome, c.data, c.roupa, c.sapato, c.sexo]);
+                
                 db.query(sqlCriancas, [valoresCriancas], (erroCriancas) => {
                     if (erroCriancas) return db.rollback(() => res.status(500).json({ erro: 'Erro nas crianças.' }));
                     db.commit((err) => res.status(201).json({ mensagem: 'Ficha completa salva!' }));
@@ -92,24 +115,18 @@ app.post('/cadastro', (req, res) => {
     });
 });
 
-// --- 6. ROTA PARA LISTAR AS FAMÍLIAS (VERSÃO BLINDADA) ---
+// --- 6. ROTA PARA LISTAR AS FAMÍLIAS (SÓ AS ATIVAS) ---
 app.get('/familias', (req, res) => {
-    const voluntarioId = req.query.voluntario_id;
     let sql = `
         SELECT 
-            r.id, r.nome_mae, r.cpf, r.fones_contato, r.voluntario_responsavel_id,
+            r.id, r.nome_mae, r.cpf, r.fones_contato, r.voluntario_responsavel_id, r.status, r.validado,
             (SELECT COUNT(*) FROM menores WHERE responsavel_id = r.id) AS total_filhos,
-            (SELECT COUNT(*) FROM menores WHERE responsavel_id = r.id AND padrinho_id IS NOT NULL) AS apadrinhados
+            (SELECT COUNT(*) FROM menores WHERE responsavel_id = r.id AND padrinho_id IS NOT NULL) AS apadrinhados,
+            (SELECT GROUP_CONCAT(nome_completo SEPARATOR ' ') FROM menores WHERE responsavel_id = r.id) AS nomes_criancas
         FROM responsaveis r
+        ORDER BY r.nome_mae ASC;
     `;
-    const valores = [];
-    if (voluntarioId) {
-        sql += ` WHERE r.voluntario_responsavel_id = ? `;
-        valores.push(voluntarioId);
-    }
-    sql += ` ORDER BY r.nome_mae ASC;`;
-
-    db.query(sql, valores, (erro, resultados) => {
+    db.query(sql, (erro, resultados) => {
         if (erro) return res.status(500).json({ erro: 'Erro ao buscar dados.' });
         res.status(200).json(resultados);
     });
@@ -137,19 +154,32 @@ app.get('/familias/:id', (req, res) => {
         });
     });
 });
+// --- ROTA: ADICIONAR NOVO FILHO A UMA FAMÍLIA EXISTENTE ---
+app.post('/familias/:id/criancas', (req, res) => {
+    const responsavelId = req.params.id;
+    const { nome, data, roupa, sapato, sexo } = req.body;
 
-// --- 8. DELETAR FAMÍLIA ---
-app.delete('/familias/:id', (req, res) => {
-    const idDaMae = req.params.id;
-    const autorDaAcao = req.query.autor;
-    db.query('DELETE FROM menores WHERE responsavel_id = ?', [idDaMae], () => {
-        db.query('DELETE FROM responsaveis WHERE id = ?', [idDaMae], () => {
-            res.status(200).json({ mensagem: 'Excluído com sucesso!' });
-        });
+    const sql = 'INSERT INTO menores (responsavel_id, nome_completo, data_nascimento, tamanho_roupa, tamanho_sapato, sexo) VALUES (?, ?, ?, ?, ?, ?)';
+    
+    db.query(sql, [responsavelId, nome, data, roupa, sapato, sexo], (erro) => {
+        if (erro) {
+            console.error('Erro ao adicionar criança:', erro);
+            return res.status(500).json({ erro: 'Erro ao adicionar a criança.' });
+        }
+        res.status(201).json({ mensagem: 'Nova criança adicionada com sucesso!' });
     });
 });
 
-// --- 9. ROTAS ADMIN: VOLUNTÁRIOS E PADRINHOS ---
+// --- 8. ARQUIVAR FAMÍLIA (SOFT DELETE) ---
+app.delete('/familias/:id', (req, res) => {
+    const idDaMae = req.params.id;
+        db.query("UPDATE responsaveis SET status = 'inativo' WHERE id = ?", [idDaMae], (erro) => {
+        if (erro) return res.status(500).json({ erro: 'Erro ao arquivar família.' });
+        res.status(200).json({ mensagem: 'Família arquivada com sucesso!' });
+    });
+});
+
+// --- 9. ROTAS ADMIN ---
 app.get('/admin/voluntarios', (req, res) => {
     db.query('SELECT id, nome, usuario, nivel_acesso FROM voluntarios ORDER BY nome ASC', (err, resu) => {
         res.status(200).json(resu);
@@ -171,9 +201,30 @@ app.post('/admin/padrinhos', (req, res) => {
     });
 });
 
+// --- ROTA: EDITAR DADOS DE UM PADRINHO ---
+app.put('/admin/padrinhos/:id', (req, res) => {
+    let { nome, telefone, observacoes, eh_anonimo, data_doacao } = req.body;
+    if (eh_anonimo) { nome = "Doador Anônimo"; telefone = telefone || "Não informado"; }
+    const sql = 'UPDATE padrinhos SET nome = ?, telefone = ?, observacoes = ?, data_doacao = ? WHERE id = ?';
+    db.query(sql, [nome, telefone, observacoes, data_doacao, req.params.id], (err) => {
+        if (err) return res.status(500).json({ erro: 'Erro ao atualizar padrinho.' });
+        res.status(200).json({ mensagem: 'Padrinho atualizado!' });
+    });
+});
+
 app.delete('/admin/padrinhos/:id', (req, res) => {
     db.query('DELETE FROM padrinhos WHERE id = ?', [req.params.id], () => {
         res.status(200).json({ mensagem: 'Padrinho excluído.' });
+    });
+});
+
+// --- ROTA: EDITAR DADOS DE UM VOLUNTÁRIO ---
+app.put('/admin/voluntarios/:id', (req, res) => {
+    const { nome, usuario, nivel_acesso } = req.body;
+    const sql = 'UPDATE voluntarios SET nome = ?, usuario = ?, nivel_acesso = ? WHERE id = ?';
+    db.query(sql, [nome, usuario, nivel_acesso, req.params.id], (err) => {
+        if (err) return res.status(500).json({ erro: 'Erro ao atualizar voluntário.' });
+        res.status(200).json({ mensagem: 'Voluntário atualizado!' });
     });
 });
 
@@ -184,28 +235,168 @@ app.put('/admin/vincular-voluntario', (req, res) => {
     });
 });
 
+// --- ROTA: DELETAR VOLUNTÁRIO E DESVINCULAR FAMÍLIAS  ---
+app.delete('/admin/voluntarios/:id', (req, res) => {
+    const idVoluntario = req.params.id;
+
+    // Passo 1: Desvincular como "Voluntário Acompanhante"
+    db.query('UPDATE responsaveis SET voluntario_responsavel_id = NULL WHERE voluntario_responsavel_id = ?', [idVoluntario], (erro1) => {
+        if (erro1) return res.status(500).json({ erro: 'Erro ao limpar responsável.' });
+
+        // Passo 2: Desvincular como "Autor do Cadastro" (Isso resolve a trava do MySQL)
+        db.query('UPDATE responsaveis SET voluntario_cadastro_id = NULL WHERE voluntario_cadastro_id = ?', [idVoluntario], (erro2) => {
+            if (erro2) return res.status(500).json({ erro: 'Erro ao limpar autor do cadastro.' });
+
+            // Passo 3: Agora que o voluntário está totalmente "solto", podemos deletar
+            db.query('DELETE FROM voluntarios WHERE id = ?', [idVoluntario], (erro3) => {
+                if (erro3) {
+                    console.error('❌ Erro ao deletar voluntário:', erro3);
+                    return res.status(500).json({ erro: 'Erro ao excluir o voluntário do banco.' });
+                }
+                res.status(200).json({ mensagem: 'Voluntário excluído e famílias desvinculadas com sucesso!' });
+            });
+        });
+    });
+});
 // --- 10. ROTA DE VÍNCULO (MATCH) PADRINHO E CRIANÇA ---
 app.put('/vincular-padrinho', (req, res) => {
     const { crianca_id, padrinho_id } = req.body;
-    console.log(`\n🕵️‍♂️ TESTE DE VÍNCULO: ID Criança: ${crianca_id} | ID Padrinho: ${padrinho_id}`);
     const sql = 'UPDATE menores SET padrinho_id = ? WHERE id = ?';
     db.query(sql, [padrinho_id || null, crianca_id], (erro, resultado) => {
         if (erro) return res.status(500).json({ erro: 'Erro ao vincular.' });
-        console.log(`✅ Sucesso! Linhas alteradas: ${resultado.affectedRows}\n`);
         res.status(200).json({ mensagem: 'Vínculo salvo!' });
     });
 });
-// --- 11. ROTA PARA EDITAR DADOS DA MÃE ---
+
+// --- 11. ROTA PARA EDITAR DADOS  ---
 app.put('/familias/:id', (req, res) => {
     const id = req.params.id;
-    const { nome_mae, cpf, fones_contato, endereco } = req.body;
+    const { nome_mae, cpf, fones_contato, endereco, titulo_eleitor, mae_trabalha, pai_trabalha, outra_ong } = req.body;
     
-    const sql = 'UPDATE responsaveis SET nome_mae = ?, cpf = ?, fones_contato = ?, endereco = ? WHERE id = ?';
-    db.query(sql, [nome_mae, cpf, fones_contato, endereco, id], (erro, resultado) => {
-        if (erro) return res.status(500).json({ erro: 'Erro ao atualizar dados.' });
+    const sql = `
+        UPDATE responsaveis 
+        SET nome_mae = ?, cpf = ?, fones_contato = ?, endereco = ?, titulo_eleitor = ?, mae_trabalha = ?, pai_trabalha = ?, outra_ong = ? 
+        WHERE id = ?
+    `;
+    
+    const valoresEdicao = [
+        nome_mae, 
+        cpf, 
+        fones_contato, 
+        endereco, 
+        titulo_eleitor, 
+        mae_trabalha, 
+        pai_trabalha, 
+        outra_ong, // <-- CAMPO NOVO ADICIONADO AQUI
+        id
+    ];
+
+    db.query(sql, valoresEdicao, (erro, resultado) => {
+        if (erro) {
+            console.error('❌ ERRO NO BANCO:', erro);
+            return res.status(500).json({ erro: 'Erro ao atualizar dados.' });
+        }
         res.status(200).json({ mensagem: 'Dados atualizados com sucesso!' });
     });
 });
+// --- 12. ROTA DE EVENTOS E ENTREGAS ---
+
+// Buscar todos os eventos criados
+app.get('/eventos', (req, res) => {
+    db.query('SELECT * FROM eventos ORDER BY id DESC', (erro, resultados) => {
+        if (erro) return res.status(500).json({ erro: 'Erro ao buscar eventos.' });
+        res.status(200).json(resultados);
+    });
+});
+
+// Admin criar um novo evento de doação
+app.post('/admin/eventos', (req, res) => {
+    const { nome, data_evento } = req.body;
+    db.query('INSERT INTO eventos (nome, data_evento) VALUES (?, ?)', [nome, data_evento], (erro) => {
+        if (erro) return res.status(500).json({ erro: 'Erro ao criar evento.' });
+        res.status(201).json({ mensagem: 'Evento criado com sucesso!' });
+    });
+});
+
+// Voluntário registrar que a família X recebeu a doação no evento Y
+app.post('/entregas', (req, res) => {
+    const { evento_id, familia_id } = req.body;
+    db.query('INSERT INTO entregas (evento_id, familia_id) VALUES (?, ?)', [evento_id, familia_id], (erro) => {
+        if (erro) return res.status(500).json({ erro: 'Erro ao registrar entrega.' });
+        res.status(201).json({ mensagem: 'Entrega registrada na ficha da família!' });
+    });
+});
+
+// O sistema verificar quais famílias já pegaram a doação naquele evento
+app.get('/eventos/:id/entregas', (req, res) => {
+    db.query('SELECT familia_id FROM entregas WHERE evento_id = ?', [req.params.id], (erro, resultados) => {
+        if (erro) return res.status(500).json({ erro: 'Erro ao buscar entregas.' });
+        
+        // Manda de volta só uma lista simples com os IDs das famílias que já receberam
+        const familiasEntregues = resultados.map(r => r.familia_id);
+        res.status(200).json(familiasEntregues);
+    });
+});
+
+// Admin editar um evento existente
+app.put('/admin/eventos/:id', (req, res) => {
+    const { nome, data_evento } = req.body;
+    db.query('UPDATE eventos SET nome = ?, data_evento = ? WHERE id = ?', [nome, data_evento, req.params.id], (erro) => {
+        if (erro) return res.status(500).json({ erro: 'Erro ao atualizar evento.' });
+        res.status(200).json({ mensagem: 'Evento atualizado com sucesso!' });
+    });
+});
+
+// Admin deletar um evento
+app.delete('/admin/eventos/:id', (req, res) => {
+    db.query('DELETE FROM eventos WHERE id = ?', [req.params.id], (erro) => {
+        if (erro) return res.status(500).json({ erro: 'Erro ao excluir evento.' });
+        res.status(200).json({ mensagem: 'Evento excluído!' });
+    });
+});
+// --- 13. ROTAS DE VALIDAÇÃO E RESTAURAÇÃO ---
+
+// Admin: Validar ou Desvalidar uma família
+app.put('/admin/familias/:id/validar', (req, res) => {
+    db.query('UPDATE responsaveis SET validado = NOT validado WHERE id = ?', [req.params.id], () => {
+        res.status(200).json({ mensagem: 'Status de validação alterado!' });
+    });
+});
+
+// Admin: Listar todas as famílias que foram arquivadas
+app.get('/admin/arquivadas', (req, res) => {
+    db.query("SELECT id, nome_mae, cpf FROM responsaveis WHERE status = 'inativo' ORDER BY nome_mae ASC", (erro, resultados) => {
+        res.status(200).json(resultados);
+    });
+});
+
+// Admin: Restaurar uma família para o painel principal
+app.put('/admin/familias/:id/restaurar', (req, res) => {
+    db.query("UPDATE responsaveis SET status = 'ativo' WHERE id = ?", [req.params.id], () => {
+        res.status(200).json({ mensagem: 'Família restaurada!' });
+    });
+});
+// --- ROTAS PARA ATUALIZAR FOTOS PELA TELA ---
+// Atualiza a foto da Mãe
+app.put('/familias/:id/foto', (req, res) => {
+    const idFamilia = req.params.id;
+    const novaFoto = req.body.foto_url;
+    db.query('UPDATE responsaveis SET foto_url = ? WHERE id = ?', [novaFoto, idFamilia], (err, resultado) => {
+        if (err) return res.status(500).json({ erro: 'Erro ao salvar foto da mãe.' });
+        res.status(200).json({ mensagem: 'Foto atualizada com sucesso!' });
+    });
+});
+
+// Atualiza a foto da Criança
+app.put('/menores/:id/foto', (req, res) => {
+    const idCrianca = req.params.id;
+    const novaFoto = req.body.foto_url;
+    db.query('UPDATE menores SET foto_url = ? WHERE id = ?', [novaFoto, idCrianca], (err, resultado) => {
+        if (err) return res.status(500).json({ erro: 'Erro ao salvar foto da criança.' });
+        res.status(200).json({ mensagem: 'Foto atualizada com sucesso!' });
+    });
+});
+
 app.listen(3000, () => {
     console.log('🚀 Servidor rodando na porta 3000.');
 });

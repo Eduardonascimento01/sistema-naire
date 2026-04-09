@@ -108,6 +108,7 @@ app.post('/cadastro', (req, res) => {
                     if (erroCriancas) return db.rollback(() => res.status(500).json({ erro: 'Erro nas crianças.' }));
                     db.commit((err) => res.status(201).json({ mensagem: 'Ficha completa salva!' }));
                 });
+                
             } else {
                 db.commit((err) => res.status(201).json({ mensagem: 'Ficha salva!' }));
             }

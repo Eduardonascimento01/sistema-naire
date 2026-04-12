@@ -121,7 +121,7 @@
                 <div style="display: flex; gap: 20px; align-items: flex-start;">
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
                         <img id="modal-foto-mae" src="icon-mae.png" alt="Foto da Mãe" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #ccc; background: #eee;">
-                        <button id="btn-mudar-foto-mae" class="btn-acao" style="background-color: #6c757d; font-size: 11px; padding: 4px 8px; border: none; border-radius: 5px; cursor: pointer; color: white;">📷 Mudar Foto</button>
+                        <button type="button" id="btn-mudar-foto-mae" class="btn-acao" style="background-color: #6c757d; font-size: 11px; padding: 4px 8px; border: none; border-radius: 5px; cursor: pointer; color: white;">📷 Mudar Foto</button>
                     </div>
                     
                     <div style="flex: 1;">
@@ -398,7 +398,7 @@
                             
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
                                 <img id="modal-foto-crianca-${c.id}" src="${fotoC}" alt="Foto da Criança" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px; border: 1px solid #ccc; background: #eee;">
-                                ${!isArquivada ? `<button class="btn-acao" style="background-color: #6c757d; font-size: 10px; padding: 4px;" onclick="mudarFotoCrianca(${c.id})">📷 Mudar Foto</button>` : ''}
+                                ${!isArquivada ? `<button type="button" class="btn-acao" style="background-color: #6c757d; font-size: 10px; padding: 4px;" onclick="mudarFotoCrianca(${c.id})">📷 Mudar Foto</button>` : ''}
                             </div>
                             
                             <div style="flex: 1;">
@@ -652,7 +652,77 @@
             await fetch(`http://localhost:3000/admin/familias/${id}/validar`, { method: 'PUT' });
             carregarFamilias(); // Recarrega a tabela na hora para trocar a cor do selo
         }
+        // --- AS DUAS FUNÇÕES V2.0 (UPLOAD DE ARQUIVO REAL) ---
+        async function mudarFotoMae(idFamilia) {
+            // Cria um "botão de arquivo" invisível
+            const inputArquivo = document.createElement('input');
+            inputArquivo.type = 'file';
+            inputArquivo.accept = 'image/png, image/jpeg, image/jpg'; 
+            
+            // Quando o voluntário escolhe a foto na janela do PC:
+            inputArquivo.onchange = async (evento) => {
+                const arquivo = evento.target.files[0];
+                if (!arquivo) return;
 
+                // Prepara a foto para viajar pela internet
+                const formData = new FormData();
+                formData.append('foto', arquivo);
+
+                try {
+                    const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}/upload-foto`, {
+                        method: 'POST',
+                        body: formData // Envia o arquivo!
+                    });
+
+                    const dados = await resposta.json();
+
+                    if (resposta.ok) {
+                        // Atualiza a foto na tela na mesma hora (colocamos a / na frente pro navegador achar a pasta)
+                        document.getElementById('modal-foto-mae').src = '/' + dados.foto_url;
+                    } else {
+                        alert(dados.erro);
+                    }
+                } catch (e) { 
+                    alert("Erro ao enviar a foto. O servidor está rodando?"); 
+                }
+            };
+
+            // Finge que alguém clicou no botão invisível para abrir a galeria
+            inputArquivo.click();
+        }
+
+        async function mudarFotoCrianca(idCrianca) {
+            const inputArquivo = document.createElement('input');
+            inputArquivo.type = 'file';
+            inputArquivo.accept = 'image/png, image/jpeg, image/jpg'; 
+            
+            inputArquivo.onchange = async (evento) => {
+                const arquivo = evento.target.files[0];
+                if (!arquivo) return;
+
+                const formData = new FormData();
+                formData.append('foto', arquivo);
+
+                try {
+                    const resposta = await fetch(`http://localhost:3000/menores/${idCrianca}/upload-foto`, {
+                        method: 'POST',
+                        body: formData 
+                    });
+
+                    const dados = await resposta.json();
+
+                    if (resposta.ok) {
+                        document.getElementById(`modal-foto-crianca-${idCrianca}`).src = '/' + dados.foto_url;
+                    } else {
+                        alert(dados.erro);
+                    }
+                } catch (e) { 
+                    alert("Erro ao enviar a foto. O servidor está rodando?"); 
+                }
+            };
+
+            inputArquivo.click();
+        }
         montarMenu(); carregarFamilias(); carregarEventosDropdown();
     </script>
 </body> 

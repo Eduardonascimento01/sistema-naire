@@ -1,13 +1,17 @@
-		const express = require('express');
+	const express = require('express');
 	const mysql = require('mysql2');
 	const cors = require('cors');
 	const bcrypt = require('bcrypt');
+	const multer = require('multer');
+	const path = require('path');
 
 	const app = express();
-
+	
+	app.use('/uploads', express.static('uploads'));
 	app.use(cors());
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: true }));
+
 
 	// --- 1. CONEXÃO COM O BANCO DE DADOS ---
 	const db = mysql.createConnection({
@@ -395,6 +399,48 @@
 		db.query('UPDATE menores SET foto_url = ? WHERE id = ?', [novaFoto, idCrianca], (err, resultado) => {
 			if (err) return res.status(500).json({ erro: 'Erro ao salvar foto da criança.' });
 			res.status(200).json({ mensagem: 'Foto atualizada com sucesso!' });
+		});
+	});
+	// =========================================================
+	// --- CONFIGURAÇÃO DO MULTER (UPLOAD DE FOTOS V2.0) ---
+	// =========================================================
+	const storage = multer.diskStorage({
+		destination: function (req, file, cb) {
+			cb(null, 'uploads/') // Salva na pasta 'uploads' que você criou
+		},
+		filename: function (req, file, cb) {
+			// Renomeia a foto usando a data de hoje para nunca dar nome duplicado
+			cb(null, Date.now() + path.extname(file.originalname)) 
+		}
+	});
+	const upload = multer({ storage: storage });
+
+
+	// --- ROTA V2.0: UPLOAD DA FOTO DA MÃE ---
+	app.post('/familias/:id/upload-foto', upload.single('foto'), (req, res) => {
+		if (!req.file) return res.status(400).json({ erro: 'Nenhuma foto enviada.' });
+
+		const idFamilia = req.params.id;
+		// O caminho que vai ser salvo no banco: ex: "uploads/17129598213.jpg"
+		const caminhoDaFoto = 'uploads/' + req.file.filename; 
+
+		db.query('UPDATE responsaveis SET foto_url = ? WHERE id = ?', [caminhoDaFoto, idFamilia], (err) => {
+			if (err) return res.status(500).json({ erro: 'Erro ao salvar no banco.' });
+			res.status(200).json({ mensagem: 'Upload feito com sucesso!', foto_url: caminhoDaFoto });
+		});
+	});
+
+
+	// --- ROTA V2.0: UPLOAD DA FOTO DA CRIANÇA ---
+	app.post('/menores/:id/upload-foto', upload.single('foto'), (req, res) => {
+		if (!req.file) return res.status(400).json({ erro: 'Nenhuma foto enviada.' });
+
+		const idCrianca = req.params.id;
+		const caminhoDaFoto = 'uploads/' + req.file.filename; 
+
+		db.query('UPDATE menores SET foto_url = ? WHERE id = ?', [caminhoDaFoto, idCrianca], (err) => {
+			if (err) return res.status(500).json({ erro: 'Erro ao salvar no banco.' });
+			res.status(200).json({ mensagem: 'Upload feito com sucesso!', foto_url: caminhoDaFoto });
 		});
 	});
 

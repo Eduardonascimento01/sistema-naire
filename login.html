@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,13 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acesso - ONG NAIRE</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #e9ecef; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-caixa { background: white; padding: 50px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); text-align: center; width: 100%; max-width: 450px; }
-        .logo-ong { width: 400px; height: auto; margin-bottom: 20px; }
-        h1 { color: #333; font-size: 32px; margin-bottom: 30px; }
-        input { width: 100%; padding: 18px; margin-bottom: 25px; border: 2px solid #ccc; border-radius: 10px; font-size: 20px; box-sizing: border-box; }
-        button { background-color: #007bff; color: white; padding: 18px; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-size: 22px; font-weight: bold; transition: 0.3s; }
-        button:hover { background-color: #0056b3; }
+        /* Fundo com gradiente suave */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #e9ecef 0%, #ced4da 100%);
+            display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; 
+        }
+        
+        /* Caixa mais suave e arredondada */
+        .login-caixa { 
+            background: white; padding: 40px 50px; border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; 
+        }
+        
+        .logo-ong { width: 100%; max-width: 320px; height: auto; margin-bottom: 10px; }
+        
+        h1 { color: #2c3e50; font-size: 26px; margin-bottom: 25px; font-weight: 600; }
+        
+        /* Container relativo para podermos posicionar o olhinho da senha */
+        .input-group { position: relative; margin-bottom: 20px; text-align: left; }
+        
+        input { 
+            width: 100%; padding: 16px; border: 2px solid #e1e5eb; border-radius: 12px; 
+            font-size: 16px; box-sizing: border-box; transition: all 0.3s ease; background-color: #f8f9fa;
+        }
+        
+        /* Efeito visual profissional quando clica no input */
+        input:focus { 
+            border-color: #007bff; outline: none; background-color: #fff; 
+            box-shadow: 0 0 0 4px rgba(0,123,255,0.1); 
+        }
+
+        /* Botão de revelar senha */
+        .btn-mostrar-senha {
+            position: absolute; right: 15px; top: 16px; background: none; border: none; 
+            font-size: 20px; cursor: pointer; color: #6c757d; transition: 0.2s;
+        }
+        .btn-mostrar-senha:hover { color: #333; }
+
+        /* Botão de Login Modernizado */
+        .btn-login { 
+            background-color: #007bff; color: white; padding: 16px; border: none; 
+            border-radius: 12px; cursor: pointer; width: 100%; font-size: 18px; font-weight: bold; 
+            transition: all 0.3s; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,123,255,0.3);
+        }
+        .btn-login:hover { background-color: #0056b3; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,123,255,0.4); }
+        .btn-login:disabled { background-color: #a0c4ff; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Estilo para as mensagens de erro/sucesso na tela */
+        .mensagem-alerta {
+            padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; font-weight: bold; display: none;
+        }
+        .msg-erro { background-color: #ffe1e1; color: #d63031; border: 1px solid #ffcccc; }
+        .msg-sucesso { background-color: #e1ffe1; color: #27ae60; border: 1px solid #ccffcc; }
+        /* Estilo do botão de Voltar no Login */
+        .btn-voltar-inicio {
+            display: block;
+            margin-top: 20px;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        .btn-voltar-inicio:hover {
+            color: #343a40;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -22,18 +81,50 @@
         
         <h1>Acesso Restrito</h1>
 
+        <div id="caixaMensagem" class="mensagem-alerta"></div>
+
         <form id="formLogin">
-            <input type="text" id="usuario" placeholder="Usuário" required>
-            <input type="password" id="senha" placeholder="Senha" required>
-            <button type="submit">Entrar no Sistema</button>
+            <div class="input-group">
+                <input type="text" id="usuario" placeholder="Nome de usuário" required autocomplete="username">
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="senha" placeholder="Sua senha" required autocomplete="current-password" style="padding-right: 50px;">
+                <button type="button" class="btn-mostrar-senha" id="toggleSenha" title="Mostrar/Ocultar Senha">👁️</button>
+            </div>
+
+            <button type="submit" id="btnEntrar" class="btn-login">Entrar no Sistema</button>
+            <a href="index.html" class="btn-voltar-inicio">⬅️ Voltar para a Página Inicial</a>
+            
         </form>
     </div>
 
     <script>
+        // Lógica do Olhinho (Mostrar/Esconder Senha)
+        const inputSenha = document.getElementById('senha');
+        const toggleSenha = document.getElementById('toggleSenha');
+
+        toggleSenha.addEventListener('click', function () {
+            // Se for password vira text, se for text vira password
+            const tipo = inputSenha.getAttribute('type') === 'password' ? 'text' : 'password';
+            inputSenha.setAttribute('type', tipo);
+            // Muda o ícone para dar feedback visual
+            this.textContent = tipo === 'password' ? '👁️' : '🔒';
+        });
+
+        // Lógica de comunicação com o servidor
         document.getElementById('formLogin').addEventListener('submit', async function(evento) {
             evento.preventDefault();
+            
             const usuarioDigitado = document.getElementById('usuario').value;
             const senhaDigitada = document.getElementById('senha').value;
+            const btnEntrar = document.getElementById('btnEntrar');
+            const caixaMensagem = document.getElementById('caixaMensagem');
+
+            // 1. Inicia o estado de Loading (Carregamento)
+            btnEntrar.disabled = true;
+            btnEntrar.textContent = '⏳ Conectando...';
+            caixaMensagem.style.display = 'none'; // Esconde mensagens anteriores
 
             try {
                 const resposta = await fetch('http://localhost:3000/login', {
@@ -43,21 +134,38 @@
                 });
 
                 if (resposta.ok) {
-                    // 1. O servidor respondeu com sucesso! Vamos extrair os dados dele:
                     const dadosDoServidor = await resposta.json();
                     
-                   // 2. Cria o "Crachá Virtual" salvando no navegador da pessoa:
                     localStorage.setItem('nomeVoluntario', dadosDoServidor.nome);
                     localStorage.setItem('idVoluntario', dadosDoServidor.id); 
                     localStorage.setItem('nivelAcesso', dadosDoServidor.nivel);
-                    // 3. Mostra uma mensagem personalizada e redireciona:
-                    alert(`✅ Bem-vindo(a), ${dadosDoServidor.nome}! Entrando no sistema...`);
-                    window.location.href = 'painel.html';
+                    
+                    // Exibe mensagem de sucesso linda na tela
+                    caixaMensagem.textContent = `✅ Bem-vindo(a), ${dadosDoServidor.nome}! Redirecionando...`;
+                    caixaMensagem.className = 'mensagem-alerta msg-sucesso';
+                    caixaMensagem.style.display = 'block';
+
+                    // Aguarda 1 segundinho para a pessoa ler a mensagem e depois redireciona
+                    setTimeout(() => {
+                        window.location.href = 'painel.html';
+                    }, 1200);
+
                 } else {
-                    alert('❌ Ops! Usuário ou senha incorretos.');
+                    // Remove o loading e exibe o erro
+                    btnEntrar.disabled = false;
+                    btnEntrar.textContent = 'Entrar no Sistema';
+                    
+                    caixaMensagem.textContent = '❌ Usuário ou senha incorretos.';
+                    caixaMensagem.className = 'mensagem-alerta msg-erro';
+                    caixaMensagem.style.display = 'block';
                 }
             } catch (erro) {
-                alert('Erro ao conectar. O servidor do VS Code está ligado?');
+                btnEntrar.disabled = false;
+                btnEntrar.textContent = 'Entrar no Sistema';
+                
+                caixaMensagem.textContent = '⚠️ Erro ao conectar ao servidor.';
+                caixaMensagem.className = 'mensagem-alerta msg-erro';
+                caixaMensagem.style.display = 'block';
             }
         });
     </script>

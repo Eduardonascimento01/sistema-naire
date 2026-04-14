@@ -3,39 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro ONG NAIRE</title>
+    <title>Cadastro ONG NAIREEEEEOOOO</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
         .formulario-caixa { background: white; padding: 30px; border-radius: 10px; max-width: 700px; margin: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         h2, h3 { text-align: center; color: #333; }
         label { font-weight: bold; margin-top: 10px; display: block; color: #555; font-size: 14px; }
-        input[type="text"], input[type="date"] { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        
+        input[type="text"], input[type="date"], select { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; transition: border-color 0.3s; }
+        
+        .erro-input { border: 2px solid #dc3545 !important; background-color: #fff8f8; }
+
         .linha-dupla { display: flex; gap: 10px; }
         .linha-dupla div { width: 100%; }
         
-        /* Estilos da área das crianças */
         .area-criancas { background-color: #eef2f5; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d1d8dd; }
         .crianca-item { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #ccc; }
         .btn-adicionar { background-color: #17a2b8; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
         .btn-remover { background-color: #dc3545; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; height: 38px; margin-bottom: 15px;}
         
-        .btn-salvar { background-color: #28a745; color: white; padding: 15px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 18px; font-weight: bold; margin-top: 10px; }
+        .btn-salvar { background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 18px; font-weight: bold; transition: 0.3s; }
         .btn-salvar:hover { background-color: #218838; }
+
+        .btn-voltar { background-color: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .btn-voltar:hover { background-color: #5a6268; }
     </style>
 </head>
 <body>
 
     <div class="formulario-caixa">
         <div style="text-align: center;">
-            <img src="logo.png" alt="Logo Instituto NAIRE" style="width: 250px; margin-bottom: 15px;">
+            <img src="LogoInstitutoNaire02.jpeg" alt="Logo Instituto NAIRE" style="width: 350px; margin-bottom: 15px;">
         </div>
         
-        <h2>Ficha de Cadastro - NAIRE</h2>
+        <h2 id="titulo-pagina">Ficha de Cadastro</h2>
         
         <form id="formOng">
             <h3>Dados do Responsável</h3>
-            <label>Nome da Mãe / Responsável:</label>
-            <input type="text" id="nome_mae" placeholder="Digite o nome completo" required>
+            <label>Nome da Mãe / Responsável: *</label>
+            <input type="text" id="nome_mae" class="obrigatorio" placeholder="Digite o nome completo">
 
             <div class="linha-dupla">
                 <div>
@@ -43,8 +49,19 @@
                     <input type="text" id="rg" placeholder="Apenas números">
                 </div>
                 <div>
-                    <label>CPF:</label>
-                    <input type="text" id="cpf" placeholder="Apenas números" required>
+                    <label>CPF: *</label>
+                    <input type="text" id="cpf" class="obrigatorio" placeholder="Apenas números">
+                </div>
+            </div>
+
+            <div class="linha-dupla">
+                <div>
+                    <label>Título Eleitor (Vota ou não):</label>
+                    <input type="text" id="titulo_eleitor" placeholder="Número ou sim/não">
+                </div>
+                <div>
+                    <label>Data de Cadastro: </label>
+                    <input type="date" id="data_cadastro" >
                 </div>
             </div>
 
@@ -54,33 +71,63 @@
             <label>Telefones de Contato:</label>
             <input type="text" id="fones" placeholder="(11) 99999-9999">
 
+            <div class="linha-dupla">
+                <div>
+                    <label>Mãe trabalha?</label>
+                    <input type="text" id="mae_trabalha" placeholder="Sim/Não - Onde?">
+                </div>
+                <div>
+                    <label>Pai trabalha?</label>
+                    <input type="text" id="pai_trabalha" placeholder="Sim/Não - Onde?">
+                </div>
+                <div class="form-grupo" style="grid-column: span 2;">
+                    <label>Participa de outra ONG? Qual? (Opcional)</label>
+                    <input type="text" id="outra_ong" placeholder="Ex: Projeto Esperança, Associação de Bairro, etc.">
+                </div>
+            </div>
+
+            <p style="font-size: 12px; color: #666; background: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 20px; border: 1px solid #ddd; line-height: 1.4;">
+                Eu, Responsável pelos menores abaixo relacionados venho de livre vontade autorizar a Ong NAIRE, de acordo com a LGPD, a coletar, tratar, armazenar e manter em seu banco de dados, os dados pessoais para finalidades necessária na ONG.
+            </p>
+
             <hr style="margin: 30px 0;">
 
             <h3>Dependentes (Menores)</h3>
             <button type="button" class="btn-adicionar" onclick="adicionarCrianca()">+ Adicionar Criança</button>
             
-            <div id="lista-criancas" class="area-criancas">
-                </div>
+            <div id="lista-criancas" class="area-criancas"></div>
 
-            <button type="submit" class="btn-salvar">Salvar Ficha Completa</button>
+            <div style="display: flex; gap: 15px; margin-top: 20px; height: 55px;">
+                <button type="submit" class="btn-salvar" style="flex: 2;">💾 Salvar Ficha Completa</button>
+                <a href="painel.html" class="btn-voltar" style="flex: 1;">⬅️ Voltar</a>
+            </div>
         </form>
     </div>
 
     <script>
-        // Função para criar os campos da criança na tela
+        const nomeLogado = localStorage.getItem('nomeVoluntario');
+        const idVoluntarioCadastro = localStorage.getItem('idVoluntario'); 
+        
+        if (!nomeLogado || !idVoluntarioCadastro) {
+            alert('Acesso negado. Por favor, faça login primeiro.');
+            window.location.href = 'login.html';
+        } else {
+            const h2 = document.getElementById('titulo-pagina');
+            h2.innerHTML = `Ficha de Cadastro - NAIRE <br> <span style="font-size: 14px; color: #007bff;">Logado como: ${nomeLogado}</span>`;
+        }
+
         function adicionarCrianca() {
             const lista = document.getElementById('lista-criancas');
-            const idCrianca = Date.now(); // Gera um ID único provisório
-            
+            const idCrianca = Date.now(); 
             const htmlCrianca = `
                 <div class="crianca-item" id="crianca-${idCrianca}">
                     <div style="flex: 3;">
-                        <label>Nome Completo:</label>
-                        <input type="text" class="nome-crianca" required>
+                        <label>Nome Completo: *</label>
+                        <input type="text" class="nome-crianca obrigatorio">
                     </div>
                     <div style="flex: 2;">
-                        <label>Nascimento:</label>
-                        <input type="date" class="data-crianca" required>
+                        <label>Nascimento: *</label>
+                        <input type="date" class="data-crianca obrigatorio">
                     </div>
                     <div style="flex: 1;">
                         <label>Roupa:</label>
@@ -90,47 +137,82 @@
                         <label>Sapato:</label>
                         <input type="text" class="sapato-crianca" placeholder="Ex: 32">
                     </div>
+                    
+                    <div style="flex: 1;">
+                        <label>Sexo: *</label>
+                        <select class="sexo-crianca obrigatorio">
+                            <option value="">--</option>
+                            <option value="M">M</option>
+                            <option value="F">F</option>
+                        </select>
+                    </div>
+
                     <button type="button" class="btn-remover" onclick="removerCrianca(${idCrianca})">X</button>
                 </div>
             `;
             lista.insertAdjacentHTML('beforeend', htmlCrianca);
+                
+        }
+             
+
+        function removerCrianca(id) { document.getElementById(`crianca-${id}`).remove(); }
+
+        function validarFormulario() {
+            let formValido = true;
+            let primeiroCampoComErro = null;
+            const camposObrigatorios = document.querySelectorAll('.obrigatorio');
+
+            camposObrigatorios.forEach(campo => {
+                campo.classList.remove('erro-input');
+                if (campo.value.trim() === '') {
+                    campo.classList.add('erro-input');
+                    formValido = false;
+                    if (!primeiroCampoComErro) primeiroCampoComErro = campo;
+                }
+            });
+
+            if (!formValido) {
+                primeiroCampoComErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                primeiroCampoComErro.focus();
+                alert('⚠️ Por favor, preencha os campos obrigatórios destacados em vermelho.');
+            }
+            return formValido;
         }
 
-        // Função para apagar uma criança da lista se a pessoa clicou errado
-        function removerCrianca(id) {
-            document.getElementById(`crianca-${id}`).remove();
-        }
-
-        // Cérebro: envia tudo (Mãe + Crianças) para o servidor
         document.getElementById('formOng').addEventListener('submit', async function(evento) {
             evento.preventDefault();
+            if (!validarFormulario()) return; 
 
-            // 1. Pega os dados da mãe
             const dadosResponsavel = {
                 nome_mae: document.getElementById('nome_mae').value,
                 rg: document.getElementById('rg').value,
                 cpf: document.getElementById('cpf').value,
+                titulo_eleitor: document.getElementById('titulo_eleitor').value,
                 endereco: document.getElementById('endereco').value,
-                fones: document.getElementById('fones').value
+                fones: document.getElementById('fones').value,
+                mae_trabalha: document.getElementById('mae_trabalha').value,
+                pai_trabalha: document.getElementById('pai_trabalha').value,
+                data_cadastro: document.getElementById('data_cadastro').value,
+                outra_ong: document.getElementById('outra_ong').value,
             };
-
-            // 2. Varre a tela e pega os dados de todas as crianças
+            
             const listaHTML = document.querySelectorAll('.crianca-item');
             const dadosMenores = [];
-            
             listaHTML.forEach(item => {
                 dadosMenores.push({
                     nome: item.querySelector('.nome-crianca').value,
                     data: item.querySelector('.data-crianca').value,
                     roupa: item.querySelector('.roupa-crianca').value,
-                    sapato: item.querySelector('.sapato-crianca').value
+                    sapato: item.querySelector('.sapato-crianca').value,
+                    sexo: item.querySelector('.sexo-crianca').value.toUpperCase()
                 });
             });
 
-            // 3. Empacota tudo e manda pro Node.js
             const pacoteFinal = {
                 responsavel: dadosResponsavel,
-                menores: dadosMenores
+                menores: dadosMenores,
+                voluntario_cadastro_id: idVoluntarioCadastro, 
+                voluntario_responsavel_id: null 
             };
 
             try {
@@ -143,13 +225,10 @@
                 if (resposta.ok) {
                     alert('🎉 Ficha completa da ONG cadastrada com sucesso!');
                     document.getElementById('formOng').reset();
-                    document.getElementById('lista-criancas').innerHTML = ''; // Limpa as crianças
-                } else {
-                    alert('Ops! Erro ao salvar.');
-                }
-            } catch (erro) {
-                alert('Erro de conexão. Servidor está ligado?');
-            }
+                    document.getElementById('lista-criancas').innerHTML = ''; 
+                    document.querySelectorAll('.obrigatorio').forEach(c => c.classList.remove('erro-input'));
+                } else { alert('Ops! Erro ao salvar.'); }
+            } catch (erro) { alert('Erro de conexão. Servidor está ligado?'); }
         });
     </script>
 </body>

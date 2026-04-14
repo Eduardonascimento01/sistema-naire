@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - ONG NAIRE</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .painel-caixa { background: white; padding: 30px; border-radius: 10px; max-width: 1000px; margin: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { color: #333; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px;}
+        .btn-voltar { background-color: #6c757d; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px;}
+        
+        .abas { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
+        .aba-btn { background-color: #f8f9fa; border: none; padding: 12px 20px; cursor: pointer; font-size: 16px; font-weight: bold; color: #555; transition: 0.3s; border-radius: 5px 5px 0 0; }
+        .aba-btn:hover { background-color: #e2e6ea; }
+        .aba-btn.ativa { background-color: #007bff; color: white; }
+        
+        .aba-conteudo { display: none; animation: fadeEffect 0.5s; }
+        @keyframes fadeEffect { from {opacity: 0;} to {opacity: 1;} }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #343a40; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+
+        select.select-admin { padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 100%; max-width: 200px;}
+        .btn-salvar-vinculo { background-color: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;}
+        .btn-salvar-vinculo:hover { background-color: #218838; }
+        
+        .btn-novo { background-color: #17a2b8; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 10px; display: inline-block;}
+        .btn-apagar { background-color: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .btn-apagar:hover { background-color: #c82333; }
+        .btn-acao { padding: 6px 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; margin-right: 5px; color: white; }
+        .btn-editar { background-color: #ffc107; color: #333; }
+        .btn-editar:hover { background-color: #e0a800; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); overflow-y: auto;} /* Adicionado rolagem geral */
+        .modal-conteudo { background-color: white; margin: 5% auto; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; } /* Garantia de rolagem interna */
+        .fechar { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; margin-top: -10px;}
+        .fechar:hover { color: black; }
+        
+        .form-grupo { margin-bottom: 15px; }
+        .form-grupo label { display: block; font-weight: bold; margin-bottom: 5px; color: #555;}
+        .form-grupo input[type="text"], .form-grupo input[type="date"], .form-grupo textarea, .form-grupo select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .checkbox-anonimo { display: flex; align-items: center; gap: 10px; background: #fff3cd; padding: 10px; border-radius: 5px; border: 1px solid #ffeeba; margin-bottom: 15px; cursor: pointer;}
+        .checkbox-anonimo input { width: 18px; height: 18px; cursor: pointer;}
+        .btn-submit-modal { background-color: #28a745; color: white; width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px;}
+        .badge { background: #28a745; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;}
+    </style>
+</head>
+<body>
+
+    <div class="painel-caixa">
+        <h2>
+            ⚙️ Gestão Administrativa
+            <a href="painel.html" class="btn-voltar">⬅️ Voltar ao Painel Geral</a>
+        </h2>
+
+        <div class="abas">
+            <button class="aba-btn ativa" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-familias')">👨‍👩‍👧‍👦 Distribuir Famílias</button>
+            <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-voluntarios')">🤝 Gerenciar Voluntários</button>
+            <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-padrinhos')">🎁 Gerenciar Padrinhos</button>
+            <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-eventos')">📅 Campanhas</button>
+            <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-arquivadas')">📦 Famílias/Eventos Arquivados</button>
+        </div>
+   
+        <div id="aba-familias" class="aba-conteudo" style="display: block;">
+            <p>Selecione um voluntário para acompanhar cada família e clique em Salvar.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mãe / Responsável</th>
+                        <th>Filhos</th>
+                        <th>Voluntário Acompanhante</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-distribuicao">
+                    <tr><td colspan="4" style="text-align: center;">Carregando dados...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="aba-voluntarios" class="aba-conteudo">
+            <button class="btn-novo" onclick="abrirModalNovoVoluntario()">+ Novo Voluntário</button>
+            <table>
+                <thead>
+                    <tr><th>Nome</th><th>Usuário</th><th>Nível</th><th style="text-align: center;">Ações</th></tr>
+                </thead>
+                <tbody id="tabela-voluntarios-admin">
+                    <tr><td colspan="4" style="text-align: center;">Carregando voluntários...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="aba-padrinhos" class="aba-conteudo">
+            <button class="btn-novo" onclick="abrirModalNovoPadrinho()">+ Novo Padrinho / Doador</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Telefone</th>
+                        <th>Data</th> <th>Observações</th>
+                        <th style="text-align: center;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-padrinhos-admin">
+                    <tr><td colspan="5" style="text-align: center;">Carregando padrinhos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    
+        <div id="aba-eventos" class="aba-conteudo">
+            <button class="btn-novo" onclick="abrirModalEvento()">+ Nova Campanha de Doação</button>
+        <table>
+            <thead>
+                <tr><th>Nome da Campanha</th><th>Data Programada</th><th style="text-align: center;">Ações</th></tr>
+            </thead>
+            <div id="modalEditarEvento" class="modal">
+            <div class="modal-conteudo">
+            <span class="fechar" onclick="fecharModalEditarEvento()">&times;</span>
+            <h2 style="margin-top: 0; border-bottom: 2px solid #ffc107; padding-bottom: 10px;">✏️ Editar Campanha</h2>
+            <form id="formEditarEvento">
+                <input type="hidden" id="edit_evento_id">
+                <div class="form-grupo">
+                    <label>Nome da Campanha: *</label>
+                    <input type="text" id="edit_nome_evento" required>
+                </div>
+                <div class="form-grupo">
+                    <label>Data do Evento: *</label>
+                    <input type="date" id="edit_data_evento" required>
+                </div>
+                <button type="submit" class="btn-submit-modal" style="background-color: #ffc107; color: #333;">💾 Salvar Alterações</button>
+            </form>
+            </div>
+        </div>
+
+            <tbody id="tabela-eventos-admin">
+                <tr><td colspan="2" style="text-align: center;">Carregando campanhas...</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <div id="aba-arquivadas" class="aba-conteudo">
+        <h2 style="color: #6c757d; border-bottom: none; margin-bottom: 10px;">📦 Arquivo Morto</h2>
+        <p style="color: #666; margin-top: -10px;">Escolha a categoria que deseja visualizar ou restaurar:</p>
+
+        <div style="display: flex; gap: 20px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px;">
+            <button class="sub-aba-btn ativa" onclick="abrirSubAba(event, 'sub-familias')" style="background: none; border: none; font-size: 16px; cursor: pointer; font-weight: bold; color: #007bff; border-bottom: 3px solid #007bff; padding-bottom: 10px;">
+                👨‍👩‍👧‍👦 Famílias Inativas
+            </button>
+            <button class="sub-aba-btn" onclick="abrirSubAba(event, 'sub-campanhas')" style="background: none; border: none; font-size: 16px; cursor: pointer; font-weight: bold; color: #777; padding-bottom: 10px;">
+                📅 Campanhas Inativas
+            </button>
+        </div>
+
+        <div id="sub-familias" class="sub-conteudo" style="display: block;">
+            <table>
+                <thead><tr><th>Nome da Responsável</th><th>CPF</th><th style="text-align: center;">Ação</th></tr></thead>
+                <tbody id="tabela-arquivadas"></tbody>
+            </table>
+        </div>
+
+        <div id="sub-campanhas" class="sub-conteudo" style="display: none;">
+            <table>
+                <thead><tr><th>Nome da Campanha</th><th>Data</th><th style="text-align: center;">Ação</th></tr></thead>
+                <tbody id="tabela-eventos-arquivados"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="modalEvento" class="modal">
+        <div class="modal-conteudo">
+            <span class="fechar" onclick="fecharModalEvento()">&times;</span>
+            <h2 style="margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px;">📅 Criar Nova Campanha</h2>
+            <form id="formEvento">
+                <div class="form-grupo">
+                    <label>Nome da Campanha: *</label>
+                    <input type="text" id="nome_evento" placeholder="Ex: Entrega de Inverno 2026" required>
+                </div>
+                <div class="form-grupo">
+                    <label>Data do Evento: *</label>
+                    <input type="date" id="data_evento" required>
+                </div>
+                <button type="submit" class="btn-submit-modal" style="background-color: #007bff;">💾 Salvar Campanha</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="modalGaleria" class="modal">
+        <div class="modal-conteudo" style="max-width: 800px; background-color: #f8f9fa;">
+            <span class="fechar" onclick="fecharModalGaleria()">&times;</span>
+            <h2 id="titulo-galeria" style="margin-top: 0; border-bottom: 2px solid #17a2b8; padding-bottom: 10px;">📸 Galeria da Campanha</h2>
+            
+            <input type="hidden" id="galeria-evento-id">
+
+            <div style="text-align: center; margin-bottom: 25px;">
+                <input type="file" id="input-foto-evento" accept="image/png, image/jpeg, image/jpg" style="display: none;">
+                <button class="btn-novo" style="background-color: #28a745; font-size: 16px; padding: 12px 20px;" onclick="clicarInputFoto()">
+                    ➕ Adicionar Nova Foto
+                </button>
+            </div>
+
+            <div id="mural-fotos" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; min-height: 150px;">
+                </div>
+        </div>
+    </div>
+
+    <div id="modalPadrinho" class="modal">
+        <div class="modal-conteudo">
+            <span class="fechar" onclick="fecharModalPadrinho()">&times;</span>
+            <h2 id="titulo-modal-padrinho" style="margin-top: 0; border-bottom: none; padding-bottom: 0;">Cadastrar Doador</h2>
+            <form id="formPadrinho">
+                <input type="hidden" id="padrinho_id_edit">
+                
+                <label class="checkbox-anonimo">
+                    <input type="checkbox" id="eh_anonimo" onchange="alternarCampoNome()">
+                    <strong>Doador Anônimo</strong>
+                </label>
+                <div class="form-grupo" id="div-nome-padrinho">
+                    <label>Nome: *</label>
+                    <input type="text" id="nome_padrinho" placeholder="Ex: Maria da Silva">
+                </div>
+                <div class="form-grupo"><label>Telefone:</label><input type="text" id="telefone_padrinho"></div>
+                <div class="form-grupo"><label>Data: *</label><input type="date" id="data_doacao" required></div>
+                <div class="form-grupo"><label>Observações:</label><textarea id="obs_padrinho" rows="3"></textarea></div>
+                <button type="submit" class="btn-submit-modal">💾 Salvar Doador</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalVoluntario" class="modal">
+        <div class="modal-conteudo">
+            <span class="fechar" onclick="fecharModalVoluntario()">&times;</span>
+            <h2 id="titulo-modal-voluntario">Novo Voluntário</h2>
+            <form id="formVoluntario">
+                <input type="hidden" id="voluntario_id_edit">
+                <div class="form-grupo"><label>Nome Completo: *</label><input type="text" id="nome_voluntario" required></div>
+                <div class="form-grupo"><label>Usuário: *</label><input type="text" id="usuario_voluntario" required></div>
+                <div class="form-grupo" id="div-senha-voluntario"><label>Senha: *</label><input type="text" id="senha_voluntario"></div>
+                <div class="form-grupo">
+                    <label>Nível: *</label>
+                    <select id="nivel_voluntario" required>
+                        <option value="voluntario">Voluntário</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit-modal" style="background-color: #007bff;">💾 Salvar Equipe</button>
+            </form>
+        </div>
+    </div>
+    <div id="modalArquivada" class="modal">
+        <div class="modal-conteudo">
+            <span class="fechar" onclick="fecharModalArquivada()">&times;</span>
+            <h2 id="arq-nome-mae" style="margin-top: 0; border-bottom: 2px solid #6c757d; padding-bottom: 10px;">Detalhes da Família (Arquivada)</h2>
+            
+            <div class="info-grupo" style="border-left-color: #6c757d">
+                <div style="display: flex; gap: 20px; align-items: flex-start;">
+                    <img id="arq-foto-mae" src="icon-mae.png" alt="Foto da Mãe" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #ccc; background: #eee; filter: grayscale(100%); opacity: 0.8;">
+                    
+                    <div style="flex: 1;">
+                        <strong>📋 Dados do Responsável:</strong><br><br>
+                        <b>CPF:</b> <span id="arq-cpf"></span> <br>
+                        <b>Endereço:</b> <span id="arq-endereco"></span> <br>
+                        <b>Telefone:</b> <span id="arq-telefone"></span> <br><br>
+                        <strong>Outra ONG:</strong> <span id="arq-ong" style="color: #007bff; font-weight: bold;"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-grupo" style="border-left-color: #6c757d;">
+                <strong>👶 Dependentes Cadastrados:</strong>
+                <ul id="arq-lista-menores" style="margin-top: 15px; padding-left: 0; list-style: none; line-height: 1.6;"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const nivelAcesso = localStorage.getItem('nivelAcesso');
+        if (nivelAcesso !== 'admin') {
+            alert('⛔ Acesso negado!');
+            window.location.href = 'painel.html';
+        }
+
+        function abrirAba(evento, nomeDaAba) {
+            const conteudos = document.getElementsByClassName('aba-conteudo');
+            for (let i = 0; i < conteudos.length; i++) { conteudos[i].style.display = 'none'; }
+            const botoes = document.getElementsByClassName('aba-btn');
+            for (let i = 0; i < botoes.length; i++) { botoes[i].className = botoes[i].className.replace(' ativa', ''); }
+            document.getElementById(nomeDaAba).style.display = 'block';
+            evento.currentTarget.className += ' ativa';
+
+            if(nomeDaAba === 'aba-padrinhos') carregarPadrinhos();
+            if(nomeDaAba === 'aba-voluntarios') carregarVoluntariosAdmin();
+            if(nomeDaAba === 'aba-familias') prepararTelaDistribuicao();
+            if(nomeDaAba === 'aba-eventos') carregarEventos();
+            if(nomeDaAba === 'aba-arquivadas') carregarArquivadas();
+        }
+
+        let listaVoluntarios = []; 
+        let listaPadrinhosData = []; // Armazena padrinhos para edição
+        
+        // --- FUNÇÃO PARA TROCAR AS SUB-ABAS DO ARQUIVO MORTO ---
+        function abrirSubAba(evento, nomeSubAba) {
+            // 1. Esconde as duas tabelas
+            const conteudos = document.getElementsByClassName('sub-conteudo');
+            for (let i = 0; i < conteudos.length; i++) {
+                conteudos[i].style.display = 'none';
+            }
+            
+            // 2. Tira a cor azul de todos os botões do menu interno
+            const botoes = document.getElementsByClassName('sub-aba-btn');
+            for (let i = 0; i < botoes.length; i++) {
+                botoes[i].style.color = '#777';
+                botoes[i].style.borderBottom = 'none';
+            }
+            
+            // 3. Mostra a tabela certa e pinta o botão clicado de azul
+            document.getElementById(nomeSubAba).style.display = 'block';
+            evento.currentTarget.style.color = '#007bff';
+            evento.currentTarget.style.borderBottom = '3px solid #007bff';
+        }
+
+        async function prepararTelaDistribuicao() {
+            try {
+                const resVoluntarios = await fetch('http://localhost:3000/admin/voluntarios');
+                listaVoluntarios = await resVoluntarios.json();
+                const resFamilias = await fetch('http://localhost:3000/familias');
+                const familias = await resFamilias.json();
+                montarTabelaDistribuicao(familias);
+            } catch (erro) { alert('Erro ao buscar dados.'); }
+        }
+
+        function montarTabelaDistribuicao(familias) {
+            const corpoTabela = document.getElementById('tabela-distribuicao');
+            corpoTabela.innerHTML = '';
+            familias.forEach(async (familia) => {
+                const resDetalhe = await fetch(`http://localhost:3000/familias/${familia.id}`);
+                const detalhe = await resDetalhe.json();
+                const vId = detalhe.responsavel.voluntario_responsavel_id;
+                let options = '<option value="">-- Sem voluntário --</option>';
+                listaVoluntarios.forEach(v => options += `<option value="${v.id}" ${v.id === vId ? 'selected' : ''}>${v.nome}</option>`);
+                corpoTabela.insertAdjacentHTML('beforeend', `<tr><td><strong>${familia.nome_mae}</strong></td><td>${familia.total_filhos}</td><td><select id="select-vol-${familia.id}" class="select-admin">${options}</select></td><td><button class="btn-salvar-vinculo" onclick="vincular(${familia.id})">💾 Salvar</button></td></tr>`);
+            });
+        }
+
+        async function vincular(idFamilia) {
+            const idV = document.getElementById(`select-vol-${idFamilia}`).value;
+            const res = await fetch('http://localhost:3000/admin/vincular-voluntario', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ familia_id: idFamilia, voluntario_responsavel_id: idV || null })
+            });
+            if(res.ok) alert('✅ Atualizado!');
+        }
+
+        // --- ABA VOLUNTARIOS ---
+        async function carregarVoluntariosAdmin() {
+            const res = await fetch('http://localhost:3000/admin/voluntarios');
+            const data = await res.json();
+            const tbody = document.getElementById('tabela-voluntarios-admin');
+            tbody.innerHTML = '';
+            data.forEach(v => {
+                tbody.innerHTML += `<tr>
+                    <td><strong>${v.nome}</strong></td>
+                    <td>${v.usuario}</td>
+                    <td>${v.nivel_acesso.toUpperCase()}</td>
+                    <td style="text-align:center;">
+                        <button class="btn-acao btn-editar" onclick="prepararEdicaoVoluntario(${v.id}, '${v.nome}', '${v.usuario}', '${v.nivel_acesso}')">✏️ Editar</button>
+                        <button class="btn-apagar" onclick="apagarVoluntario(${v.id})">🗑️ Excluir</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        // --- ABA PADRINHOS ---
+        async function carregarPadrinhos() {
+            const res = await fetch('http://localhost:3000/admin/padrinhos');
+            listaPadrinhosData = await res.json();
+            const tbody = document.getElementById('tabela-padrinhos-admin');
+            tbody.innerHTML = '';
+            listaPadrinhosData.forEach(p => {
+                let dataF = p.data_doacao ? new Date(p.data_doacao).toLocaleDateString('pt-BR') : '-';
+                tbody.innerHTML += `<tr>
+                    <td>${p.nome}</td><td>${p.telefone || '-'}</td><td>${dataF}</td><td>${p.observacoes || '-'}</td>
+                    <td style="text-align:center;">
+                        <button class="btn-acao btn-editar" onclick="prepararEdicaoPadrinho(${p.id})">✏️ Editar</button>
+                        <button class="btn-apagar" onclick="apagarPadrinho(${p.id})">🗑️ Excluir</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        // --- FUNCOES DE EDITAR (PREENCHER OS MODAIS) ---
+        function prepararEdicaoPadrinho(id) {
+            const padrinho = listaPadrinhosData.find(p => p.id === id);
+            document.getElementById('padrinho_id_edit').value = padrinho.id;
+            document.getElementById('titulo-modal-padrinho').innerText = 'Editar Doador';
+            document.getElementById('eh_anonimo').checked = padrinho.nome === 'Doador Anônimo';
+            alternarCampoNome();
+            
+            document.getElementById('nome_padrinho').value = padrinho.nome === 'Doador Anônimo' ? '' : padrinho.nome;
+            document.getElementById('telefone_padrinho').value = padrinho.telefone !== 'Não informado' ? padrinho.telefone : '';
+            if(padrinho.data_doacao) {
+                document.getElementById('data_doacao').value = padrinho.data_doacao.split('T')[0]; // Converte a data para o input HTML
+            }
+            document.getElementById('obs_padrinho').value = padrinho.observacoes || '';
+            
+            document.getElementById('modalPadrinho').style.display = 'block';
+        }
+
+        function prepararEdicaoVoluntario(id, nome, usuario, nivel) {
+            document.getElementById('titulo-modal-voluntario').innerText = 'Editar Voluntário';
+            document.getElementById('voluntario_id_edit').value = id;
+            document.getElementById('nome_voluntario').value = nome;
+            document.getElementById('usuario_voluntario').value = usuario;
+            document.getElementById('nivel_voluntario').value = nivel;
+            
+            // Esconder o campo de senha durante a edição para simplificar
+            document.getElementById('div-senha-voluntario').style.display = 'none';
+            document.getElementById('senha_voluntario').removeAttribute('required');
+
+            document.getElementById('modalVoluntario').style.display = 'block';
+        }
+
+        // --- SUBMITS DOS FORMULARIOS (CRIAR E ATUALIZAR) ---
+        document.getElementById('formPadrinho').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const idEdit = document.getElementById('padrinho_id_edit').value;
+            const pacote = {
+                eh_anonimo: document.getElementById('eh_anonimo').checked,
+                nome: document.getElementById('nome_padrinho').value,
+                telefone: document.getElementById('telefone_padrinho').value,
+                data_doacao: document.getElementById('data_doacao').value,
+                observacoes: document.getElementById('obs_padrinho').value
+            };
+            
+            // Se tem idEdit, é PUT (Atualizar). Se não, é POST (Criar)
+            const url = idEdit ? `http://localhost:3000/admin/padrinhos/${idEdit}` : 'http://localhost:3000/admin/padrinhos';
+            const method = idEdit ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
+            });
+            if(res.ok) { alert('✅ Salvo com sucesso!'); fecharModalPadrinho(); carregarPadrinhos(); }
+        });
+
+        document.getElementById('formVoluntario').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const idEdit = document.getElementById('voluntario_id_edit').value;
+            const pacote = {
+                nome: document.getElementById('nome_voluntario').value,
+                usuario: document.getElementById('usuario_voluntario').value,
+                nivel_acesso: document.getElementById('nivel_voluntario').value
+            };
+            if(!idEdit) pacote.senha = document.getElementById('senha_voluntario').value;
+            
+            const url = idEdit ? `http://localhost:3000/admin/voluntarios/${idEdit}` : 'http://localhost:3000/cadastrar-voluntario';
+            const method = idEdit ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
+            });
+            if(res.ok) { alert('✅ Sucesso!'); fecharModalVoluntario(); carregarVoluntariosAdmin(); }
+        });
+
+        // --- DELETAR ---
+        async function apagarVoluntario(id) {
+            if(confirm('Tem certeza que deseja apagar?')) {
+                const res = await fetch(`http://localhost:3000/admin/voluntarios/${id}`, { method: 'DELETE' });
+                if(res.ok) { alert('Excluído!'); carregarVoluntariosAdmin(); }
+            }
+        }
+
+        async function apagarPadrinho(id) {
+            if(confirm('Tem certeza que deseja apagar?')) {
+                const res = await fetch(`http://localhost:3000/admin/padrinhos/${id}`, { method: 'DELETE' });
+                if(res.ok) { alert('Excluído!'); carregarPadrinhos(); }
+            }
+        }
+
+        // --- MODAIS ---
+        function abrirModalNovoPadrinho() { 
+            document.getElementById('titulo-modal-padrinho').innerText = 'Cadastrar Doador';
+            document.getElementById('modalPadrinho').style.display = 'block'; 
+        }
+        function fecharModalPadrinho() { 
+            document.getElementById('modalPadrinho').style.display = 'none'; 
+            document.getElementById('formPadrinho').reset(); 
+            document.getElementById('padrinho_id_edit').value = ''; 
+            alternarCampoNome();
+        }
+        function abrirModalNovoVoluntario() { 
+            document.getElementById('titulo-modal-voluntario').innerText = 'Novo Voluntário';
+            document.getElementById('div-senha-voluntario').style.display = 'block'; // Mostra a senha para novos
+            document.getElementById('senha_voluntario').setAttribute('required', 'true');
+            document.getElementById('modalVoluntario').style.display = 'block'; 
+        }
+        function fecharModalVoluntario() { 
+            document.getElementById('modalVoluntario').style.display = 'none'; 
+            document.getElementById('formVoluntario').reset(); 
+            document.getElementById('voluntario_id_edit').value = ''; 
+        }
+        function alternarCampoNome() {
+            const anon = document.getElementById('eh_anonimo').checked;
+            document.getElementById('div-nome-padrinho').style.display = anon ? 'none' : 'block';
+        }
+
+        // --- LÓGICA DE CAMPANHAS E EVENTOS ---
+        let eventosGlobais = []; 
+
+        async function carregarEventos() {
+            const res = await fetch('http://localhost:3000/eventos');
+            eventosGlobais = await res.json();
+            const tbody = document.getElementById('tabela-eventos-admin');
+            tbody.innerHTML = '';
+            
+            eventosGlobais.forEach(e => {
+                let dataF = new Date(e.data_evento);
+                dataF.setMinutes(dataF.getMinutes() + dataF.getTimezoneOffset());
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${e.nome}</strong></td>
+                        <td>${dataF.toLocaleDateString('pt-BR')}</td>
+                        <td align="center">
+                            <button class="btn-acao" style="background-color: #17a2b8;" onclick="abrirGaleria(${e.id}, '${e.nome}')">📸 Galeria</button>
+                            <button class="btn-acao" style="background-color: #ffc107; color: #333;" onclick="abrirModalEditarEvento(${e.id})">✏️ Editar</button>
+                            <button class="btn-acao" style="background-color: #6c757d;" onclick="apagarEvento(${e.id})">📦 Arquivar</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        function abrirModalEvento() { document.getElementById('modalEvento').style.display = 'block'; }
+        function fecharModalEvento() { document.getElementById('modalEvento').style.display = 'none'; document.getElementById('formEvento').reset(); }
+
+        // Salvando NOVO evento
+        document.getElementById('formEvento').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const pacote = { nome: document.getElementById('nome_evento').value, data_evento: document.getElementById('data_evento').value };
+            const res = await fetch('http://localhost:3000/admin/eventos', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
+            });
+            if(res.ok) { alert('✅ Campanha salva!'); fecharModalEvento(); carregarEventos(); }
+        });
+
+        // --- FUNÇÕES DE EDITAR E APAGAR EVENTO ---
+        function abrirModalEditarEvento(id) {
+            const e = eventosGlobais.find(ev => ev.id === id);
+            let dataISO = e.data_evento.split('T')[0]; 
+           
+            document.getElementById('edit_evento_id').value = id;
+            document.getElementById('edit_nome_evento').value = e.nome;
+            document.getElementById('edit_data_evento').value = dataISO;
+            document.getElementById('modalEditarEvento').style.display = 'block';
+        }
+
+        function fecharModalEditarEvento() { document.getElementById('modalEditarEvento').style.display = 'none'; }
+
+        document.getElementById('formEditarEvento').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit_evento_id').value;
+            const pacote = { nome: document.getElementById('edit_nome_evento').value, data_evento: document.getElementById('edit_data_evento').value };
+            
+            const res = await fetch(`http://localhost:3000/admin/eventos/${id}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
+            });
+            if(res.ok) { alert('✅ Campanha atualizada!'); fecharModalEditarEvento(); carregarEventos(); }
+        });
+
+       // Manda para o arquivo (Lixeira)
+        async function apagarEvento(id) {
+            if(confirm('📦 Deseja ARQUIVAR esta campanha? Ela sairá do painel principal, mas poderá ser restaurada depois.')) {
+                const res = await fetch(`http://localhost:3000/admin/eventos/${id}/arquivar`, { method: 'PUT' });
+                if(res.ok) { 
+                    alert('Campanha arquivada!'); 
+                    carregarEventos(); // Atualiza a tabela na hora
+                }
+            }
+        }
+
+        // Apaga para sempre (Fica dentro de uma aba de lixeira ou modal)
+        async function excluirEventoDefinitivo(id) {
+            if(confirm('🚨 ALERTA VERMELHO 🚨\n\nVocê está prestes a EXCLUIR DEFINITIVAMENTE esta campanha.\nTodas as fotos e registros de entrega dela serão perdidos para sempre.\n\nTem certeza absoluta?')) {
+                const res = await fetch(`http://localhost:3000/admin/eventos/${id}/excluir-definitivo`, { method: 'DELETE' });
+                if(res.ok) { 
+                    alert('🗑️ Campanha desintegrada com sucesso!'); 
+                    // Aqui você chama a função que recarrega a tabela da lixeira
+                }
+            }
+        }
+
+        // Restaura para o painel
+        async function restaurarEvento(id) {
+            if(confirm('Deseja devolver esta campanha para o painel principal?')) {
+                const res = await fetch(`http://localhost:3000/admin/eventos/${id}/restaurar`, { method: 'PUT' });
+                if(res.ok) { 
+                    alert('✅ Campanha restaurada!'); 
+                    // Recarrega a tabela da lixeira e do painel principal
+                }
+            }
+        }
+        // --- FUNÇÕES DE ARQUIVO E RESTAURAÇÃO ---
+        async function carregarArquivadas() {
+            const resFam = await fetch('http://localhost:3000/admin/arquivadas');
+            const familias = await resFam.json();
+            const tbodyFam = document.getElementById('tabela-arquivadas');
+            tbodyFam.innerHTML = '';
+            familias.forEach(f => {
+                tbodyFam.innerHTML += `
+                    <tr>
+                        <td><strong>${f.nome_mae}</strong></td>
+                        <td>${f.cpf || '-'}</td>
+                        <td align="center">
+                            <button class="btn-acao" style="background-color: #17a2b8;" onclick="verDetalhesArquivada(${f.id})">👁️ Detalhes</button>
+                            <button class="btn-acao" style="background-color: #28a745;" onclick="restaurarFamilia(${f.id})">🔄 Restaurar</button>
+                        </td>
+                    </tr>`;
+            });
+
+            // 2. Carrega Eventos Arquivados 
+            const resEv = await fetch('http://localhost:3000/admin/eventos-arquivados');
+            const eventos = await resEv.json();
+            const tbodyEv = document.getElementById('tabela-eventos-arquivados');
+            tbodyEv.innerHTML = '';
+
+            if(eventos.length === 0) {
+                tbodyEv.innerHTML = '<tr><td colspan="3" align="center">Nenhum evento na lixeira.</td></tr>';
+            } else {
+                eventos.forEach(e => {
+                    let dataF = new Date(e.data_evento).toLocaleDateString('pt-BR');
+                    tbodyEv.innerHTML += `
+                        <tr>
+                            <td><strong>${e.nome}</strong></td>
+                            <td>${dataF}</td>
+                            <td align="center">
+                                <button class="btn-acao" style="background-color: #28a745;" onclick="restaurarEvento(${e.id})">🔄 Restaurar</button>
+                                <button class="btn-acao" style="background-color: #dc3545;" onclick="excluirEventoDefinitivo(${e.id})">🗑️ Apagar</button>
+                            </td>
+                        </tr>`;
+                });
+            }
+        }
+
+        async function restaurarFamilia(id) {
+            if(confirm('Deseja devolver esta família para o painel principal ativo?')) {
+                const res = await fetch(`http://localhost:3000/admin/familias/${id}/restaurar`, { method: 'PUT' });
+                if(res.ok) { alert('✅ Família restaurada!'); carregarArquivadas(); }
+            }
+        }
+        async function verDetalhesArquivada(id) {
+            try {
+                // Como a nossa rota do banco de dados busca pelo ID, ela consegue achar até as inativas!
+                const res = await fetch(`http://localhost:3000/familias/${id}`);
+                const dados = await res.json();
+                const fotoMae = dados.responsavel.foto_url ? dados.responsavel.foto_url : 'icon-mae.png';
+                
+                document.getElementById('arq-foto-mae').src = fotoMae;
+                document.getElementById('arq-nome-mae').innerText = dados.responsavel.nome_mae;
+                document.getElementById('arq-cpf').innerText = dados.responsavel.cpf || '-';
+                document.getElementById('arq-endereco').innerText = dados.responsavel.endereco || '-';
+                document.getElementById('arq-telefone').innerText = dados.responsavel.fones_contato || '-';
+                document.getElementById('arq-ong').innerText = dados.responsavel.outra_ong || 'Não participa de outra ONG';
+
+                const listaM = document.getElementById('arq-lista-menores');
+                listaM.innerHTML = '';
+                
+                if (dados.menores.length === 0) {
+                    listaM.innerHTML = '<li style="padding: 10px;">Nenhuma criança cadastrada.</li>';
+                } else {
+                    dados.menores.forEach(c => {
+                        const fotoC = c.foto_url ? c.foto_url : 'icon-crianca.png';
+                        
+                        listaM.innerHTML += `
+                            <li style="padding: 15px 0; border-bottom: 1px dashed #ccc; display: flex; gap: 15px; align-items: flex-start;">
+                                <img src="${fotoC}" alt="Foto" style="width: 60px; height: 60px; object-fit: cover; border-radius: 10px; border: 1px solid #ccc; background: #eee; filter: grayscale(100%); opacity: 0.8;">
+                                
+                                <div style="flex: 1;">
+                                    <b>👶 ${c.nome_completo}</b> (${c.sexo || '-'})<br>
+                                    <span style="font-size: 13px; color: #555;">Roupa: ${c.tamanho_roupa || '-'} | Sapato: ${c.tamanho_sapato || '-'}</span>
+                                    <div style="margin-top: 5px; font-size: 13px; color: #333;"><b>🎁 Padrinho:</b> ${c.nome_padrinho || 'Sem vínculo'}</div>
+                                </div>
+                            </li>
+                        `;
+                    });
+                }
+                document.getElementById('modalArquivada').style.display = 'block';
+            } catch (erro) {
+                console.error("Erro ao abrir detalhes arquivados:", erro);
+            }
+        }
+
+        function fecharModalArquivada() {
+            document.getElementById('modalArquivada').style.display = 'none';
+        }
+        
+        // --- LÓGICA DA GALERIA DE FOTOS ---
+
+        function abrirGaleria(id, nome) {
+            document.getElementById('galeria-evento-id').value = id;
+            document.getElementById('titulo-galeria').innerText = `📸 Galeria: ${nome}`;
+            document.getElementById('modalGaleria').style.display = 'block';
+            carregarFotosDoMural(id);
+        }
+
+        function fecharModalGaleria() {
+            document.getElementById('modalGaleria').style.display = 'none';
+        }
+
+        async function carregarFotosDoMural(idEvento) {
+            const mural = document.getElementById('mural-fotos');
+            mural.innerHTML = '<p>Carregando fotos...</p>';
+
+            try {
+                const res = await fetch(`http://localhost:3000/admin/eventos/${idEvento}/fotos`);
+                const fotos = await res.json();
+
+                if (fotos.length === 0) {
+                    mural.innerHTML = '<p style="color: #666; font-style: italic;">Nenhuma foto registrada neste evento ainda.</p>';
+                    return;
+                }
+
+                mural.innerHTML = ''; // Limpa o mural
+                fotos.forEach(f => {
+                    // Desenha o quadrado da foto (com a barra / na frente do link para achar a pasta uploads)
+                    mural.innerHTML += `
+                        <div style="border: 3px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; width: 220px; height: 180px; background: #eee;">
+                            <img src="/${f.foto_url}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                mural.innerHTML = '<p style="color: red;">Erro ao carregar a galeria.</p>';
+            }
+        }
+
+        // Quando clica no botão verde, "finge" um clique no input invisível
+        function clicarInputFoto() {
+            document.getElementById('input-foto-evento').click();
+        }
+
+        // O que acontece quando o usuário escolhe a foto no computador
+        document.getElementById('input-foto-evento').addEventListener('change', async (evento) => {
+            const arquivo = evento.target.files[0];
+            if (!arquivo) return;
+
+            const idEvento = document.getElementById('galeria-evento-id').value;
+            const formData = new FormData();
+            formData.append('foto', arquivo);
+
+            try {
+                // Mostra um aviso de que está carregando
+                document.getElementById('mural-fotos').innerHTML = '<p>Fazendo upload da imagem, aguarde...</p>';
+
+                const res = await fetch(`http://localhost:3000/admin/eventos/${idEvento}/fotos`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (res.ok) {
+                    // Limpa o input e recarrega o mural na mesma hora!
+                    document.getElementById('input-foto-evento').value = '';
+                    carregarFotosDoMural(idEvento);
+                } else {
+                    alert("Erro ao salvar foto.");
+                }
+            } catch (e) {
+                alert("Erro de conexão.");
+            }
+        });
+
+        // --- FECHAR MODAIS CLICANDO NO FUNDO ESCURO ---
+        window.onclick = (e) => { 
+            if (e.target == document.getElementById('modalEvento')) fecharModalEvento();
+            if (e.target == document.getElementById('modalEditarEvento')) fecharModalEditarEvento();
+            if (e.target == document.getElementById('modalPadrinho')) document.getElementById('modalPadrinho').style.display = 'none';
+            if (e.target == document.getElementById('modalVoluntario')) fecharModalVoluntario();
+            if (e.target == document.getElementById('modalArquivada')) fecharModalArquivada();
+            if (e.target == document.getElementById('modalGaleria')) fecharModalGaleria();
+        };
+        
+        prepararTelaDistribuicao();
+    </script>
+</body>
+</html>

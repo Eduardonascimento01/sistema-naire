@@ -306,11 +306,45 @@
 	});
 	// --- 12. ROTA DE EVENTOS E ENTREGAS ---
 
-	// Buscar todos os eventos criados
+	// --- 1. BUSCAR EVENTOS ATIVOS (PAINEL PRINCIPAL) ---
 	app.get('/eventos', (req, res) => {
-		db.query('SELECT * FROM eventos ORDER BY id DESC', (erro, resultados) => {
+		// Agora só busca quem não está na lixeira
+		db.query("SELECT * FROM eventos WHERE status = 'ativo' ORDER BY id DESC", (erro, resultados) => {
 			if (erro) return res.status(500).json({ erro: 'Erro ao buscar eventos.' });
 			res.status(200).json(resultados);
+		});
+	});
+
+	// --- 2. BUSCAR EVENTOS ARQUIVADOS (LIXEIRA) ---
+	app.get('/admin/eventos-arquivados', (req, res) => {
+		db.query("SELECT * FROM eventos WHERE status = 'inativo' ORDER BY id DESC", (erro, resultados) => {
+			if (erro) return res.status(500).json({ erro: 'Erro ao buscar eventos arquivados.' });
+			res.status(200).json(resultados);
+		});
+	});
+
+	// --- 3. MOVER PARA A LIXEIRA (SOFT DELETE) ---
+	app.put('/admin/eventos/:id/arquivar', (req, res) => {
+		db.query("UPDATE eventos SET status = 'inativo' WHERE id = ?", [req.params.id], (erro) => {
+			if (erro) return res.status(500).json({ erro: 'Erro ao arquivar evento.' });
+			res.status(200).json({ mensagem: 'Evento movido para a lixeira!' });
+		});
+	});
+
+	// --- 4. RESTAURAR DA LIXEIRA ---
+	app.put('/admin/eventos/:id/restaurar', (req, res) => {
+		db.query("UPDATE eventos SET status = 'ativo' WHERE id = ?", [req.params.id], (erro) => {
+			if (erro) return res.status(500).json({ erro: 'Erro ao restaurar evento.' });
+			res.status(200).json({ mensagem: 'Evento restaurado com sucesso!' });
+		});
+	});
+
+	// --- 5. EXCLUSÃO DEFINITIVA (O "APAGAR" REAL) ---
+	app.delete('/admin/eventos/:id/excluir-definitivo', (req, res) => {
+		// ATENÇÃO: Isso vai apagar o evento e as fotos relacionadas a ele
+		db.query('DELETE FROM eventos WHERE id = ?', [req.params.id], (erro) => {
+			if (erro) return res.status(500).json({ erro: 'Erro ao excluir definitivamente.' });
+			res.status(200).json({ mensagem: 'Evento apagado para sempre!' });
 		});
 	});
 
@@ -443,7 +477,32 @@
 			res.status(200).json({ mensagem: 'Upload feito com sucesso!', foto_url: caminhoDaFoto });
 		});
 	});
+	// =========================================================
+	// --- ROTAS DA GALERIA DE FOTOS DOS EVENTOS ---
+	// =========================================================
 
+	// 1. Rota para fazer UPLOAD de uma foto para um evento
+	app.post('/admin/eventos/:id/fotos', upload.single('foto'), (req, res) => {
+		if (!req.file) return res.status(400).json({ erro: 'Nenhuma foto enviada.' });
+
+		const idEvento = req.params.id;
+		const caminhoDaFoto = 'uploads/' + req.file.filename;
+
+		db.query('INSERT INTO fotos_evento (evento_id, foto_url) VALUES (?, ?)', [idEvento, caminhoDaFoto], (erro) => {
+			if (erro) return res.status(500).json({ erro: 'Erro ao salvar foto no banco.' });
+			res.status(201).json({ mensagem: 'Foto adicionada à galeria!', foto_url: caminhoDaFoto });
+		});
+	});
+
+	// 2. Rota para BUSCAR todas as fotos de um evento
+	app.get('/admin/eventos/:id/fotos', (req, res) => {
+		db.query('SELECT * FROM fotos_evento WHERE evento_id = ? ORDER BY id DESC', [req.params.id], (erro, resultados) => {
+			if (erro) return res.status(500).json({ erro: 'Erro ao buscar galeria.' });
+			res.status(200).json(resultados);
+		});
+	});
+
+	
 	app.listen(3000, () => {
 		console.log('🚀 Servidor rodando na porta 3000.');
 	});	

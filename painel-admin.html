@@ -57,13 +57,13 @@
         </h2>
 
         <div class="abas">
-            <button class="aba-btn ativa" onclick="abrirAba(event, 'aba-familias')">👨‍👩‍👧‍👦 Distribuir Famílias</button>
-            <button class="aba-btn" onclick="abrirAba(event, 'aba-voluntarios')">🤝 Gerenciar Voluntários</button>
-            <button class="aba-btn" onclick="abrirAba(event, 'aba-padrinhos')">🎁 Gerenciar Padrinhos</button>,
-            <button class="aba-btn" onclick="abrirAba(event, 'aba-eventos')">📅 Campanhas</button>
-            <button class="aba-btn" onclick="abrirAba(event, 'aba-arquivadas')">📦 Famílias Arquivadas</button>
+            <button class="aba-btn ativa" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-familias')">👨‍👩‍👧‍👦 Distribuir Famílias</button>
+            <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-voluntarios')">🤝 Gerenciar Voluntários</button>
+            <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-padrinhos')">🎁 Gerenciar Padrinhos</button>
+            <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-eventos')">📅 Campanhas</button>
+            <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-arquivadas')">📦 Famílias/Eventos Arquivados</button>
         </div>
-
+   
         <div id="aba-familias" class="aba-conteudo" style="display: block;">
             <p>Selecione um voluntário para acompanhar cada família e clique em Salvar.</p>
             <table>
@@ -109,15 +109,15 @@
                 </tbody>
             </table>
         </div>
-    </div>
-<div id="aba-eventos" class="aba-conteudo">
-        <button class="btn-novo" onclick="abrirModalEvento()">+ Nova Campanha de Doação</button>
+    
+        <div id="aba-eventos" class="aba-conteudo">
+            <button class="btn-novo" onclick="abrirModalEvento()">+ Nova Campanha de Doação</button>
         <table>
             <thead>
                 <tr><th>Nome da Campanha</th><th>Data Programada</th><th style="text-align: center;">Ações</th></tr>
             </thead>
             <div id="modalEditarEvento" class="modal">
-        <div class="modal-conteudo">
+            <div class="modal-conteudo">
             <span class="fechar" onclick="fecharModalEditarEvento()">&times;</span>
             <h2 style="margin-top: 0; border-bottom: 2px solid #ffc107; padding-bottom: 10px;">✏️ Editar Campanha</h2>
             <form id="formEditarEvento">
@@ -132,21 +132,40 @@
                 </div>
                 <button type="submit" class="btn-submit-modal" style="background-color: #ffc107; color: #333;">💾 Salvar Alterações</button>
             </form>
+            </div>
         </div>
-    </div>
 
             <tbody id="tabela-eventos-admin">
                 <tr><td colspan="2" style="text-align: center;">Carregando campanhas...</td></tr>
             </tbody>
         </table>
-    </div>
-    <div id="aba-arquivadas" class="aba-conteudo">
-        <h2 style="color: #6c757d;">📦 Histórico de Famílias Inativas</h2>
-        <p style="color: #666; margin-top: -10px;">Estas famílias não aparecem mais no painel principal, mas seus dados estão seguros.</p>
-        <table>
-            <thead><tr><th>Nome da Responsável</th><th>CPF</th><th style="text-align: center;">Ação</th></tr></thead>
-            <tbody id="tabela-arquivadas"></tbody>
-        </table>
+        </div>
+        <div id="aba-arquivadas" class="aba-conteudo">
+        <h2 style="color: #6c757d; border-bottom: none; margin-bottom: 10px;">📦 Arquivo Morto</h2>
+        <p style="color: #666; margin-top: -10px;">Escolha a categoria que deseja visualizar ou restaurar:</p>
+
+        <div style="display: flex; gap: 20px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px;">
+            <button class="sub-aba-btn ativa" onclick="abrirSubAba(event, 'sub-familias')" style="background: none; border: none; font-size: 16px; cursor: pointer; font-weight: bold; color: #007bff; border-bottom: 3px solid #007bff; padding-bottom: 10px;">
+                👨‍👩‍👧‍👦 Famílias Inativas
+            </button>
+            <button class="sub-aba-btn" onclick="abrirSubAba(event, 'sub-campanhas')" style="background: none; border: none; font-size: 16px; cursor: pointer; font-weight: bold; color: #777; padding-bottom: 10px;">
+                📅 Campanhas Inativas
+            </button>
+        </div>
+
+        <div id="sub-familias" class="sub-conteudo" style="display: block;">
+            <table>
+                <thead><tr><th>Nome da Responsável</th><th>CPF</th><th style="text-align: center;">Ação</th></tr></thead>
+                <tbody id="tabela-arquivadas"></tbody>
+            </table>
+        </div>
+
+        <div id="sub-campanhas" class="sub-conteudo" style="display: none;">
+            <table>
+                <thead><tr><th>Nome da Campanha</th><th>Data</th><th style="text-align: center;">Ação</th></tr></thead>
+                <tbody id="tabela-eventos-arquivados"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="modalEvento" class="modal">
@@ -164,6 +183,25 @@
                 </div>
                 <button type="submit" class="btn-submit-modal" style="background-color: #007bff;">💾 Salvar Campanha</button>
             </form>
+        </div>
+    </div>
+    
+    <div id="modalGaleria" class="modal">
+        <div class="modal-conteudo" style="max-width: 800px; background-color: #f8f9fa;">
+            <span class="fechar" onclick="fecharModalGaleria()">&times;</span>
+            <h2 id="titulo-galeria" style="margin-top: 0; border-bottom: 2px solid #17a2b8; padding-bottom: 10px;">📸 Galeria da Campanha</h2>
+            
+            <input type="hidden" id="galeria-evento-id">
+
+            <div style="text-align: center; margin-bottom: 25px;">
+                <input type="file" id="input-foto-evento" accept="image/png, image/jpeg, image/jpg" style="display: none;">
+                <button class="btn-novo" style="background-color: #28a745; font-size: 16px; padding: 12px 20px;" onclick="clicarInputFoto()">
+                    ➕ Adicionar Nova Foto
+                </button>
+            </div>
+
+            <div id="mural-fotos" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; min-height: 150px;">
+                </div>
         </div>
     </div>
 
@@ -215,7 +253,7 @@
             <span class="fechar" onclick="fecharModalArquivada()">&times;</span>
             <h2 id="arq-nome-mae" style="margin-top: 0; border-bottom: 2px solid #6c757d; padding-bottom: 10px;">Detalhes da Família (Arquivada)</h2>
             
-            <div class="info-grupo" style="border-left-color: #6c757d;">
+            <div class="info-grupo" style="border-left-color: #6c757d">
                 <div style="display: flex; gap: 20px; align-items: flex-start;">
                     <img id="arq-foto-mae" src="icon-mae.png" alt="Foto da Mãe" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #ccc; background: #eee; filter: grayscale(100%); opacity: 0.8;">
                     
@@ -260,6 +298,27 @@
 
         let listaVoluntarios = []; 
         let listaPadrinhosData = []; // Armazena padrinhos para edição
+        
+        // --- FUNÇÃO PARA TROCAR AS SUB-ABAS DO ARQUIVO MORTO ---
+        function abrirSubAba(evento, nomeSubAba) {
+            // 1. Esconde as duas tabelas
+            const conteudos = document.getElementsByClassName('sub-conteudo');
+            for (let i = 0; i < conteudos.length; i++) {
+                conteudos[i].style.display = 'none';
+            }
+            
+            // 2. Tira a cor azul de todos os botões do menu interno
+            const botoes = document.getElementsByClassName('sub-aba-btn');
+            for (let i = 0; i < botoes.length; i++) {
+                botoes[i].style.color = '#777';
+                botoes[i].style.borderBottom = 'none';
+            }
+            
+            // 3. Mostra a tabela certa e pinta o botão clicado de azul
+            document.getElementById(nomeSubAba).style.display = 'block';
+            evento.currentTarget.style.color = '#007bff';
+            evento.currentTarget.style.borderBottom = '3px solid #007bff';
+        }
 
         async function prepararTelaDistribuicao() {
             try {
@@ -335,7 +394,6 @@
             const padrinho = listaPadrinhosData.find(p => p.id === id);
             document.getElementById('padrinho_id_edit').value = padrinho.id;
             document.getElementById('titulo-modal-padrinho').innerText = 'Editar Doador';
-            
             document.getElementById('eh_anonimo').checked = padrinho.nome === 'Doador Anônimo';
             alternarCampoNome();
             
@@ -464,8 +522,9 @@
                         <td><strong>${e.nome}</strong></td>
                         <td>${dataF.toLocaleDateString('pt-BR')}</td>
                         <td align="center">
+                            <button class="btn-acao" style="background-color: #17a2b8;" onclick="abrirGaleria(${e.id}, '${e.nome}')">📸 Galeria</button>
                             <button class="btn-acao" style="background-color: #ffc107; color: #333;" onclick="abrirModalEditarEvento(${e.id})">✏️ Editar</button>
-                            <button class="btn-acao" style="background-color: #dc3545;" onclick="apagarEvento(${e.id})">🗑️ Apagar</button>
+                            <button class="btn-acao" style="background-color: #6c757d;" onclick="apagarEvento(${e.id})">📦 Arquivar</button>
                         </td>
                     </tr>`;
             });
@@ -508,35 +567,78 @@
             if(res.ok) { alert('✅ Campanha atualizada!'); fecharModalEditarEvento(); carregarEventos(); }
         });
 
+       // Manda para o arquivo (Lixeira)
         async function apagarEvento(id) {
-            if(confirm('🚨 Atenção: Tem certeza que deseja apagar esta campanha?\n\nISSO VAI EXCLUIR TODOS OS REGISTROS DE ENTREGA LIGADOS A ELA.')) {
-                const res = await fetch(`http://localhost:3000/admin/eventos/${id}`, { method: 'DELETE' });
-                if(res.ok) { alert('🗑️ Campanha excluída!'); carregarEventos(); }
+            if(confirm('📦 Deseja ARQUIVAR esta campanha? Ela sairá do painel principal, mas poderá ser restaurada depois.')) {
+                const res = await fetch(`http://localhost:3000/admin/eventos/${id}/arquivar`, { method: 'PUT' });
+                if(res.ok) { 
+                    alert('Campanha arquivada!'); 
+                    carregarEventos(); // Atualiza a tabela na hora
+                }
+            }
+        }
+
+        // Apaga para sempre (Fica dentro de uma aba de lixeira ou modal)
+        async function excluirEventoDefinitivo(id) {
+            if(confirm('🚨 ALERTA VERMELHO 🚨\n\nVocê está prestes a EXCLUIR DEFINITIVAMENTE esta campanha.\nTodas as fotos e registros de entrega dela serão perdidos para sempre.\n\nTem certeza absoluta?')) {
+                const res = await fetch(`http://localhost:3000/admin/eventos/${id}/excluir-definitivo`, { method: 'DELETE' });
+                if(res.ok) { 
+                    alert('🗑️ Campanha desintegrada com sucesso!'); 
+                    // Aqui você chama a função que recarrega a tabela da lixeira
+                }
+            }
+        }
+
+        // Restaura para o painel
+        async function restaurarEvento(id) {
+            if(confirm('Deseja devolver esta campanha para o painel principal?')) {
+                const res = await fetch(`http://localhost:3000/admin/eventos/${id}/restaurar`, { method: 'PUT' });
+                if(res.ok) { 
+                    alert('✅ Campanha restaurada!'); 
+                    // Recarrega a tabela da lixeira e do painel principal
+                }
             }
         }
         // --- FUNÇÕES DE ARQUIVO E RESTAURAÇÃO ---
         async function carregarArquivadas() {
-            const res = await fetch('http://localhost:3000/admin/arquivadas');
-            const data = await res.json();
-            const tbody = document.getElementById('tabela-arquivadas');
-            tbody.innerHTML = '';
-            
-            if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" align="center">Nenhuma família arquivada.</td></tr>';
-                return;
-            }
-
-            data.forEach(f => {
-                tbody.innerHTML += `
+            const resFam = await fetch('http://localhost:3000/admin/arquivadas');
+            const familias = await resFam.json();
+            const tbodyFam = document.getElementById('tabela-arquivadas');
+            tbodyFam.innerHTML = '';
+            familias.forEach(f => {
+                tbodyFam.innerHTML += `
                     <tr>
                         <td><strong>${f.nome_mae}</strong></td>
                         <td>${f.cpf || '-'}</td>
                         <td align="center">
                             <button class="btn-acao" style="background-color: #17a2b8;" onclick="verDetalhesArquivada(${f.id})">👁️ Detalhes</button>
-                            <button class="btn-acao" style="background-color: #28a745;" onclick="restaurarFamilia(${f.id})">🔄 Restaurar Família</button>
+                            <button class="btn-acao" style="background-color: #28a745;" onclick="restaurarFamilia(${f.id})">🔄 Restaurar</button>
                         </td>
                     </tr>`;
             });
+
+            // 2. Carrega Eventos Arquivados 
+            const resEv = await fetch('http://localhost:3000/admin/eventos-arquivados');
+            const eventos = await resEv.json();
+            const tbodyEv = document.getElementById('tabela-eventos-arquivados');
+            tbodyEv.innerHTML = '';
+
+            if(eventos.length === 0) {
+                tbodyEv.innerHTML = '<tr><td colspan="3" align="center">Nenhum evento na lixeira.</td></tr>';
+            } else {
+                eventos.forEach(e => {
+                    let dataF = new Date(e.data_evento).toLocaleDateString('pt-BR');
+                    tbodyEv.innerHTML += `
+                        <tr>
+                            <td><strong>${e.nome}</strong></td>
+                            <td>${dataF}</td>
+                            <td align="center">
+                                <button class="btn-acao" style="background-color: #28a745;" onclick="restaurarEvento(${e.id})">🔄 Restaurar</button>
+                                <button class="btn-acao" style="background-color: #dc3545;" onclick="excluirEventoDefinitivo(${e.id})">🗑️ Apagar</button>
+                            </td>
+                        </tr>`;
+                });
+            }
         }
 
         async function restaurarFamilia(id) {
@@ -590,6 +692,82 @@
         function fecharModalArquivada() {
             document.getElementById('modalArquivada').style.display = 'none';
         }
+        
+        // --- LÓGICA DA GALERIA DE FOTOS ---
+
+        function abrirGaleria(id, nome) {
+            document.getElementById('galeria-evento-id').value = id;
+            document.getElementById('titulo-galeria').innerText = `📸 Galeria: ${nome}`;
+            document.getElementById('modalGaleria').style.display = 'block';
+            carregarFotosDoMural(id);
+        }
+
+        function fecharModalGaleria() {
+            document.getElementById('modalGaleria').style.display = 'none';
+        }
+
+        async function carregarFotosDoMural(idEvento) {
+            const mural = document.getElementById('mural-fotos');
+            mural.innerHTML = '<p>Carregando fotos...</p>';
+
+            try {
+                const res = await fetch(`http://localhost:3000/admin/eventos/${idEvento}/fotos`);
+                const fotos = await res.json();
+
+                if (fotos.length === 0) {
+                    mural.innerHTML = '<p style="color: #666; font-style: italic;">Nenhuma foto registrada neste evento ainda.</p>';
+                    return;
+                }
+
+                mural.innerHTML = ''; // Limpa o mural
+                fotos.forEach(f => {
+                    // Desenha o quadrado da foto (com a barra / na frente do link para achar a pasta uploads)
+                    mural.innerHTML += `
+                        <div style="border: 3px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; width: 220px; height: 180px; background: #eee;">
+                            <img src="/${f.foto_url}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                mural.innerHTML = '<p style="color: red;">Erro ao carregar a galeria.</p>';
+            }
+        }
+
+        // Quando clica no botão verde, "finge" um clique no input invisível
+        function clicarInputFoto() {
+            document.getElementById('input-foto-evento').click();
+        }
+
+        // O que acontece quando o usuário escolhe a foto no computador
+        document.getElementById('input-foto-evento').addEventListener('change', async (evento) => {
+            const arquivo = evento.target.files[0];
+            if (!arquivo) return;
+
+            const idEvento = document.getElementById('galeria-evento-id').value;
+            const formData = new FormData();
+            formData.append('foto', arquivo);
+
+            try {
+                // Mostra um aviso de que está carregando
+                document.getElementById('mural-fotos').innerHTML = '<p>Fazendo upload da imagem, aguarde...</p>';
+
+                const res = await fetch(`http://localhost:3000/admin/eventos/${idEvento}/fotos`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (res.ok) {
+                    // Limpa o input e recarrega o mural na mesma hora!
+                    document.getElementById('input-foto-evento').value = '';
+                    carregarFotosDoMural(idEvento);
+                } else {
+                    alert("Erro ao salvar foto.");
+                }
+            } catch (e) {
+                alert("Erro de conexão.");
+            }
+        });
+
         // --- FECHAR MODAIS CLICANDO NO FUNDO ESCURO ---
         window.onclick = (e) => { 
             if (e.target == document.getElementById('modalEvento')) fecharModalEvento();
@@ -597,6 +775,7 @@
             if (e.target == document.getElementById('modalPadrinho')) document.getElementById('modalPadrinho').style.display = 'none';
             if (e.target == document.getElementById('modalVoluntario')) fecharModalVoluntario();
             if (e.target == document.getElementById('modalArquivada')) fecharModalArquivada();
+            if (e.target == document.getElementById('modalGaleria')) fecharModalGaleria();
         };
         
         prepararTelaDistribuicao();

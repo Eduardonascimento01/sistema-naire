@@ -6,7 +6,8 @@
 	const path = require('path');
 
 	const app = express();
-	
+
+	app.use('/img', express.static('img'));
 	app.use('/uploads', express.static('uploads'));
 	app.use(cors());
 	app.use(express.json());
@@ -120,20 +121,50 @@
 		});
 	});
 
-	// --- 6. ROTA PARA LISTAR AS FAMÍLIAS (SÓ AS ATIVAS) ---
+	// --- 6. ROTA PARA LISTAR AS FAMÍLIAS  ---
 	app.get('/familias', (req, res) => {
+		
 		let sql = `
 			SELECT 
 				r.id, r.nome_mae, r.cpf, r.fones_contato, r.voluntario_responsavel_id, r.status, r.validado,
-				(SELECT COUNT(*) FROM menores WHERE responsavel_id = r.id) AS total_filhos,
-				(SELECT COUNT(*) FROM menores WHERE responsavel_id = r.id AND padrinho_id IS NOT NULL) AS apadrinhados,
-				(SELECT GROUP_CONCAT(nome_completo SEPARATOR ' ') FROM menores WHERE responsavel_id = r.id) AS nomes_criancas
+				COUNT(m.id) AS total_filhos,
+				SUM(CASE WHEN m.padrinho_id IS NOT NULL THEN 1 ELSE 0 END) AS apadrinhados,
+				GROUP_CONCAT(m.nome_completo SEPARATOR ', ') AS nomes_criancas,
+				GROUP_CONCAT(m.tamanho_roupa) AS lista_roupas,
+				GROUP_CONCAT(m.tamanho_sapato) AS lista_sapatos,
+				GROUP_CONCAT(m.sexo) AS lista_sexos
 			FROM responsaveis r
+			LEFT JOIN menores m ON r.id = m.responsavel_id
+			GROUP BY r.id
 			ORDER BY r.nome_mae ASC;
 		`;
+
 		db.query(sql, (erro, resultados) => {
-			if (erro) return res.status(500).json({ erro: 'Erro ao buscar dados.' });
+			if (erro) {
+				console.error("Erro no SQL de famílias:", erro);
+				return res.status(500).json({ erro: 'Erro ao buscar dados.' });
+			}
 			res.status(200).json(resultados);
+		});
+	});
+	
+	// --- ROTA DE VALIDAÇÃO DE CPF EM TEMPO REAL ---
+	app.get('/verificar-cpf/:cpf', (req, res) => {
+		// Pegamos o CPF digitado
+		const cpfDigitado = req.params.cpf;
+
+		// Buscamos na tabela se alguém já tem esse CPF
+		const sql = 'SELECT id FROM responsaveis WHERE cpf = ?';
+		
+		db.query(sql, [cpfDigitado], (erro, resultados) => {
+			if (erro) return res.status(500).json({ erro: 'Erro ao verificar CPF' });
+			
+			// Se a lista de resultados for maior que zero, o CPF existe!
+			if (resultados.length > 0) {
+				res.status(200).json({ existe: true });
+			} else {
+				res.status(200).json({ existe: false });
+			}
 		});
 	});
 
@@ -159,6 +190,7 @@
 			});
 		});
 	});
+	
 	// --- ROTA: ADICIONAR NOVO FILHO A UMA FAMÍLIA EXISTENTE ---
 	app.post('/familias/:id/criancas', (req, res) => {
 		const responsavelId = req.params.id;
@@ -275,35 +307,37 @@
 
 	// --- 11. ROTA PARA EDITAR DADOS  ---
 	app.put('/familias/:id', (req, res) => {
-		const id = req.params.id;
-		const { nome_mae, cpf, fones_contato, endereco, titulo_eleitor, mae_trabalha, pai_trabalha, outra_ong } = req.body;
-		
-		const sql = `
-			UPDATE responsaveis 
-			SET nome_mae = ?, cpf = ?, fones_contato = ?, endereco = ?, titulo_eleitor = ?, mae_trabalha = ?, pai_trabalha = ?, outra_ong = ? 
-			WHERE id = ?
-		`;
-		
-		const valoresEdicao = [
-			nome_mae, 
-			cpf, 
-			fones_contato, 
-			endereco, 
-			titulo_eleitor, 
-			mae_trabalha, 
-			pai_trabalha, 
-			outra_ong, // <-- CAMPO NOVO ADICIONADO AQUI
-			id
-		];
+        const id = req.params.id;
+        
+        const { nome_mae, cpf, nis, fones_contato, endereco, titulo_eleitor, mae_trabalha, pai_trabalha, outra_ong } = req.body;
+        
+        const sql = `
+            UPDATE responsaveis 
+            SET nome_mae = ?, cpf = ?, nis = ?, fones_contato = ?, endereco = ?, titulo_eleitor = ?, mae_trabalha = ?, pai_trabalha = ?, outra_ong = ? 
+            WHERE id = ?
+        `;
+        
+        const valoresEdicao = [
+            nome_mae, 
+            cpf, 
+            nis, 
+            fones_contato, 
+            endereco, 
+            titulo_eleitor, 
+            mae_trabalha, 
+            pai_trabalha, 
+            outra_ong, 
+            id
+        ];
 
-		db.query(sql, valoresEdicao, (erro, resultado) => {
-			if (erro) {
-				console.error('❌ ERRO NO BANCO:', erro);
-				return res.status(500).json({ erro: 'Erro ao atualizar dados.' });
-			}
-			res.status(200).json({ mensagem: 'Dados atualizados com sucesso!' });
-		});
-	});
+        db.query(sql, valoresEdicao, (erro, resultado) => {
+            if (erro) {
+                console.error('❌ ERRO NO BANCO:', erro);
+                return res.status(500).json({ erro: 'Erro ao atualizar dados.' });
+            }
+            res.status(200).json({ mensagem: 'Dados atualizados com sucesso!' });
+        });
+    });
 	// --- 12. ROTA DE EVENTOS E ENTREGAS ---
 
 	// --- 1. BUSCAR EVENTOS ATIVOS (PAINEL PRINCIPAL) ---
@@ -415,6 +449,22 @@
 			res.status(200).json({ mensagem: 'Família restaurada!' });
 		});
 	});
+	
+	// --- ATUALIZAR TAMANHO DE ROUPA E SAPATO DA CRIANÇA ---
+	app.put('/menores/:id/tamanhos', (req, res) => {
+		const id = req.params.id;
+		const { tamanho_roupa, tamanho_sapato } = req.body;
+		const sql = 'UPDATE menores SET tamanho_roupa = ?, tamanho_sapato = ? WHERE id = ?';
+		
+		db.query(sql, [tamanho_roupa, tamanho_sapato, id], (err) => {
+			if(err) {
+				console.error("Erro ao atualizar criança:", err);
+				return res.status(500).json({ erro: 'Erro ao atualizar.' });
+			}
+			res.status(200).json({ msg: 'Criança atualizada!' });
+		});
+	});
+
 	// --- ROTAS PARA ATUALIZAR FOTOS PELA TELA ---
 	// Atualiza a foto da Mãe
 	app.put('/familias/:id/foto', (req, res) => {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro ONG NAIREEEEEOOOO</title>
+    <title>Cadastro ONG NAIRE</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
         .formulario-caixa { background: white; padding: 30px; border-radius: 10px; max-width: 700px; margin: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
@@ -32,12 +32,15 @@
 <body>
 
     <div class="formulario-caixa">
-        <div style="text-align: center;">
-            <img src="LogoInstitutoNaire02.jpeg" alt="Logo Instituto NAIRE" style="width: 350px; margin-bottom: 15px;">
+       
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+            
+        <h2 id="titulo-pagina" style="margin: 0; border: none; color: #333;">Ficha de Cadastro</h2>
+            
+        <img src="/img/LogoInstitutoNaire02.jpeg" alt="Logo Instituto NAIRE" style="width: 220px; border-radius: 8px;">
+            
         </div>
-        
-        <h2 id="titulo-pagina">Ficha de Cadastro</h2>
-        
+                
         <form id="formOng">
             <h3>Dados do Responsável</h3>
             <label>Nome da Mãe / Responsável: *</label>
@@ -50,7 +53,10 @@
                 </div>
                 <div>
                     <label>CPF: *</label>
-                    <input type="text" id="cpf" class="obrigatorio" placeholder="Apenas números">
+                    <input type="text" id="cpf" class="obrigatorio" placeholder="Apenas números" onblur="verificarCpfEmTempoReal()">
+                    <span id="aviso-cpf" style="display: none; color: #dc3545; font-size: 12px; font-weight: bold; margin-top: 4px;">
+                    ⚠️ Atenção: Este CPF já está cadastrado!
+                    </span>
                 </div>
             </div>
 
@@ -80,6 +86,12 @@
                     <label>Pai trabalha?</label>
                     <input type="text" id="pai_trabalha" placeholder="Sim/Não - Onde?">
                 </div>
+            </div>
+            <div class="linha-dupla">
+                <div>
+                    <label>Nº do NIS</label>
+                    <input type="text" id="nis" placeholder="Número do NIS">
+                </div>    
                 <div class="form-grupo" style="grid-column: span 2;">
                     <label>Participa de outra ONG? Qual? (Opcional)</label>
                     <input type="text" id="outra_ong" placeholder="Ex: Projeto Esperança, Associação de Bairro, etc.">
@@ -107,13 +119,51 @@
     <script>
         const nomeLogado = localStorage.getItem('nomeVoluntario');
         const idVoluntarioCadastro = localStorage.getItem('idVoluntario'); 
+        const API_BASE_URL = 'http://localhost:3000';
         
         if (!nomeLogado || !idVoluntarioCadastro) {
             alert('Acesso negado. Por favor, faça login primeiro.');
             window.location.href = 'login.html';
         } else {
             const h2 = document.getElementById('titulo-pagina');
-            h2.innerHTML = `Ficha de Cadastro - NAIRE <br> <span style="font-size: 14px; color: #007bff;">Logado como: ${nomeLogado}</span>`;
+            h2.innerHTML = `Ficha de Cadastro <br> <span style="font-size: 14px; color: #007bff;">Logado como: ${nomeLogado}</span>`;
+        }
+
+        // --- VALIDAÇÃO DE CPF EM TEMPO REAL ---
+        async function verificarCpfEmTempoReal() {
+            const inputCpf = document.getElementById('cpf'); // <- Ajustado para o seu ID exato!
+            const aviso = document.getElementById('aviso-cpf');
+            
+            // Tenta achar o seu botão de salvar (se o id for diferente, ajuste aqui)
+            const botaoSalvar = document.getElementById('btn-salvar') || document.querySelector('button[type="submit"]'); 
+            
+            const cpfValor = inputCpf.value.trim();
+
+            if (cpfValor.length > 0) {
+                try {
+                    const res = await fetch(`http://localhost:3000/verificar-cpf/${cpfValor}`);
+                    const dados = await res.json();
+
+                    if (dados.existe) {
+                        aviso.style.display = 'block';
+                        inputCpf.style.borderColor = '#dc3545';
+                        inputCpf.style.backgroundColor = '#f8d7da';
+                        if(botaoSalvar) botaoSalvar.disabled = true; 
+                    } else {
+                        aviso.style.display = 'none';
+                        inputCpf.style.borderColor = '#28a745';
+                        inputCpf.style.backgroundColor = 'white';
+                        if(botaoSalvar) botaoSalvar.disabled = false;
+                    }
+                } catch (e) {
+                    console.error("Erro na verificação de CPF", e);
+                }
+            } else {
+                aviso.style.display = 'none';
+                inputCpf.style.borderColor = '#ccc';
+                inputCpf.style.backgroundColor = 'white';
+                if(botaoSalvar) botaoSalvar.disabled = false;
+            }
         }
 
         function adicionarCrianca() {
@@ -187,6 +237,7 @@
                 nome_mae: document.getElementById('nome_mae').value,
                 rg: document.getElementById('rg').value,
                 cpf: document.getElementById('cpf').value,
+                nis: document.getElementById('nis').value,
                 titulo_eleitor: document.getElementById('titulo_eleitor').value,
                 endereco: document.getElementById('endereco').value,
                 fones: document.getElementById('fones').value,
@@ -216,7 +267,7 @@
             };
 
             try {
-                const resposta = await fetch('http://localhost:3000/cadastro', {
+                const resposta = await fetch(`${API_BASE_URL}/cadastro`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(pacoteFinal)

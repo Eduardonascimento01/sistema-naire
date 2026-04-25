@@ -61,7 +61,7 @@
             <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-voluntarios')">🤝 Gerenciar Voluntários</button>
             <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-padrinhos')">🎁 Gerenciar Padrinhos</button>
             <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-eventos')">📅 Campanhas</button>
-            <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-arquivadas')">📦 Famílias/Eventos Arquivados</button>
+            <button class="aba-btn" style="border-left: 5px solid #17a2b8;" onclick="abrirAba(event, 'aba-arquivadas')">📦 Arquivados  Famílias/Eventos </button>
         </div>
    
         <div id="aba-familias" class="aba-conteudo" style="display: block;">
@@ -112,33 +112,33 @@
     
         <div id="aba-eventos" class="aba-conteudo">
             <button class="btn-novo" onclick="abrirModalEvento()">+ Nova Campanha de Doação</button>
-        <table>
-            <thead>
-                <tr><th>Nome da Campanha</th><th>Data Programada</th><th style="text-align: center;">Ações</th></tr>
-            </thead>
-            <div id="modalEditarEvento" class="modal">
-            <div class="modal-conteudo">
-            <span class="fechar" onclick="fecharModalEditarEvento()">&times;</span>
-            <h2 style="margin-top: 0; border-bottom: 2px solid #ffc107; padding-bottom: 10px;">✏️ Editar Campanha</h2>
-            <form id="formEditarEvento">
-                <input type="hidden" id="edit_evento_id">
-                <div class="form-grupo">
-                    <label>Nome da Campanha: *</label>
-                    <input type="text" id="edit_nome_evento" required>
-                </div>
-                <div class="form-grupo">
-                    <label>Data do Evento: *</label>
-                    <input type="date" id="edit_data_evento" required>
-                </div>
-                <button type="submit" class="btn-submit-modal" style="background-color: #ffc107; color: #333;">💾 Salvar Alterações</button>
-            </form>
-            </div>
+            <table>
+                <thead>
+                    <tr><th>Nome da Campanha</th><th>Data Programada</th><th style="text-align: center;">Ações</th></tr>
+                </thead>
+                <tbody id="tabela-eventos-admin">
+                    <tr><td colspan="3" style="text-align: center;">Carregando campanhas...</td></tr>
+                </tbody>
+            </table>
         </div>
 
-            <tbody id="tabela-eventos-admin">
-                <tr><td colspan="2" style="text-align: center;">Carregando campanhas...</td></tr>
-            </tbody>
-        </table>
+        <div id="modalEditarEvento" class="modal">
+            <div class="modal-conteudo">
+                <span class="fechar" onclick="fecharModalEditarEvento()">&times;</span>
+                <h2 style="margin-top: 0; border-bottom: 2px solid #ffc107; padding-bottom: 10px;">✏️ Editar Campanha</h2>
+                <form id="formEditarEvento">
+                    <input type="hidden" id="edit_evento_id">
+                    <div class="form-grupo">
+                        <label>Nome da Campanha: *</label>
+                        <input type="text" id="edit_nome_evento" required>
+                    </div>
+                    <div class="form-grupo">
+                        <label>Data do Evento: *</label>
+                        <input type="date" id="edit_data_evento" required>
+                    </div>
+                    <button type="submit" class="btn-submit-modal" style="background-color: #ffc107; color: #333;">💾 Salvar Alterações</button>
+                </form>
+            </div>
         </div>
         <div id="aba-arquivadas" class="aba-conteudo">
         <h2 style="color: #6c757d; border-bottom: none; margin-bottom: 10px;">📦 Arquivo Morto</h2>
@@ -274,13 +274,28 @@
         </div>
     </div>
 
-    <script>
+   <script>
         const nivelAcesso = localStorage.getItem('nivelAcesso');
+        const API_BASE_URL = 'http://localhost:3000';
+
         if (nivelAcesso !== 'admin') {
             alert('⛔ Acesso negado!');
             window.location.href = 'painel.html';
         }
 
+        // --- CALCULADORA DE IDADE ---
+        function calcularIdade(dataString) {
+            if (!dataString) return 'Idade desconhecida';
+            const nascimento = new Date(dataString);
+            const hoje = new Date();
+            let idade = hoje.getFullYear() - nascimento.getFullYear();
+            const m = hoje.getMonth() - nascimento.getMonth();
+            if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+                idade--;
+            }
+            return idade + (idade === 1 ? ' ano' : ' anos');
+        }
+        
         function abrirAba(evento, nomeDaAba) {
             const conteudos = document.getElementsByClassName('aba-conteudo');
             for (let i = 0; i < conteudos.length; i++) { conteudos[i].style.display = 'none'; }
@@ -322,9 +337,9 @@
 
         async function prepararTelaDistribuicao() {
             try {
-                const resVoluntarios = await fetch('http://localhost:3000/admin/voluntarios');
+                const resVoluntarios = await fetch(`${API_BASE_URL}/admin/voluntarios`);
                 listaVoluntarios = await resVoluntarios.json();
-                const resFamilias = await fetch('http://localhost:3000/familias');
+                const resFamilias = await fetch(`${API_BASE_URL}/familias`);
                 const familias = await resFamilias.json();
                 montarTabelaDistribuicao(familias);
             } catch (erro) { alert('Erro ao buscar dados.'); }
@@ -334,7 +349,7 @@
             const corpoTabela = document.getElementById('tabela-distribuicao');
             corpoTabela.innerHTML = '';
             familias.forEach(async (familia) => {
-                const resDetalhe = await fetch(`http://localhost:3000/familias/${familia.id}`);
+                const resDetalhe = await fetch(`${API_BASE_URL}/familias/${familia.id}`);
                 const detalhe = await resDetalhe.json();
                 const vId = detalhe.responsavel.voluntario_responsavel_id;
                 let options = '<option value="">-- Sem voluntário --</option>';
@@ -345,7 +360,7 @@
 
         async function vincular(idFamilia) {
             const idV = document.getElementById(`select-vol-${idFamilia}`).value;
-            const res = await fetch('http://localhost:3000/admin/vincular-voluntario', {
+            const res = await fetch(`${API_BASE_URL}/admin/vincular-voluntario`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ familia_id: idFamilia, voluntario_responsavel_id: idV || null })
             });
@@ -354,7 +369,7 @@
 
         // --- ABA VOLUNTARIOS ---
         async function carregarVoluntariosAdmin() {
-            const res = await fetch('http://localhost:3000/admin/voluntarios');
+            const res = await fetch(`${API_BASE_URL}/admin/voluntarios`);
             const data = await res.json();
             const tbody = document.getElementById('tabela-voluntarios-admin');
             tbody.innerHTML = '';
@@ -373,7 +388,7 @@
 
         // --- ABA PADRINHOS ---
         async function carregarPadrinhos() {
-            const res = await fetch('http://localhost:3000/admin/padrinhos');
+            const res = await fetch(`${API_BASE_URL}/admin/padrinhos`);
             listaPadrinhosData = await res.json();
             const tbody = document.getElementById('tabela-padrinhos-admin');
             tbody.innerHTML = '';
@@ -434,7 +449,7 @@
             };
             
             // Se tem idEdit, é PUT (Atualizar). Se não, é POST (Criar)
-            const url = idEdit ? `http://localhost:3000/admin/padrinhos/${idEdit}` : 'http://localhost:3000/admin/padrinhos';
+            const url = idEdit ? `${API_BASE_URL}/admin/padrinhos/${idEdit}` : `${API_BASE_URL}/admin/padrinhos`;
             const method = idEdit ? 'PUT' : 'POST';
 
             const res = await fetch(url, {
@@ -453,7 +468,7 @@
             };
             if(!idEdit) pacote.senha = document.getElementById('senha_voluntario').value;
             
-            const url = idEdit ? `http://localhost:3000/admin/voluntarios/${idEdit}` : 'http://localhost:3000/cadastrar-voluntario';
+            const url = idEdit ? `${API_BASE_URL}/admin/voluntarios/${idEdit}` : `${API_BASE_URL}/cadastrar-voluntario`;
             const method = idEdit ? 'PUT' : 'POST';
 
             const res = await fetch(url, {
@@ -462,17 +477,17 @@
             if(res.ok) { alert('✅ Sucesso!'); fecharModalVoluntario(); carregarVoluntariosAdmin(); }
         });
 
-        // --- DELETAR ---
+        
         async function apagarVoluntario(id) {
             if(confirm('Tem certeza que deseja apagar?')) {
-                const res = await fetch(`http://localhost:3000/admin/voluntarios/${id}`, { method: 'DELETE' });
+                const res = await fetch(`${API_BASE_URL}/admin/voluntarios/${id}`, { method: 'DELETE' });
                 if(res.ok) { alert('Excluído!'); carregarVoluntariosAdmin(); }
             }
         }
 
         async function apagarPadrinho(id) {
             if(confirm('Tem certeza que deseja apagar?')) {
-                const res = await fetch(`http://localhost:3000/admin/padrinhos/${id}`, { method: 'DELETE' });
+                const res = await fetch(`${API_BASE_URL}/admin/padrinhos/${id}`, { method: 'DELETE' });
                 if(res.ok) { alert('Excluído!'); carregarPadrinhos(); }
             }
         }
@@ -508,7 +523,7 @@
         let eventosGlobais = []; 
 
         async function carregarEventos() {
-            const res = await fetch('http://localhost:3000/eventos');
+            const res = await fetch(`${API_BASE_URL}/eventos`);
             eventosGlobais = await res.json();
             const tbody = document.getElementById('tabela-eventos-admin');
             tbody.innerHTML = '';
@@ -537,7 +552,7 @@
         document.getElementById('formEvento').addEventListener('submit', async function(e) {
             e.preventDefault();
             const pacote = { nome: document.getElementById('nome_evento').value, data_evento: document.getElementById('data_evento').value };
-            const res = await fetch('http://localhost:3000/admin/eventos', {
+            const res = await fetch(`${API_BASE_URL}/admin/eventos`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
             });
             if(res.ok) { alert('✅ Campanha salva!'); fecharModalEvento(); carregarEventos(); }
@@ -561,7 +576,7 @@
             const id = document.getElementById('edit_evento_id').value;
             const pacote = { nome: document.getElementById('edit_nome_evento').value, data_evento: document.getElementById('edit_data_evento').value };
             
-            const res = await fetch(`http://localhost:3000/admin/eventos/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/admin/eventos/${id}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
             });
             if(res.ok) { alert('✅ Campanha atualizada!'); fecharModalEditarEvento(); carregarEventos(); }
@@ -570,7 +585,7 @@
        // Manda para o arquivo (Lixeira)
         async function apagarEvento(id) {
             if(confirm('📦 Deseja ARQUIVAR esta campanha? Ela sairá do painel principal, mas poderá ser restaurada depois.')) {
-                const res = await fetch(`http://localhost:3000/admin/eventos/${id}/arquivar`, { method: 'PUT' });
+                const res = await fetch(`${API_BASE_URL}/admin/eventos/${id}/arquivar`, { method: 'PUT' });
                 if(res.ok) { 
                     alert('Campanha arquivada!'); 
                     carregarEventos(); // Atualiza a tabela na hora
@@ -581,7 +596,7 @@
         // Apaga para sempre (Fica dentro de uma aba de lixeira ou modal)
         async function excluirEventoDefinitivo(id) {
             if(confirm('🚨 ALERTA VERMELHO 🚨\n\nVocê está prestes a EXCLUIR DEFINITIVAMENTE esta campanha.\nTodas as fotos e registros de entrega dela serão perdidos para sempre.\n\nTem certeza absoluta?')) {
-                const res = await fetch(`http://localhost:3000/admin/eventos/${id}/excluir-definitivo`, { method: 'DELETE' });
+                const res = await fetch(`${API_BASE_URL}/admin/eventos/${id}/excluir-definitivo`, { method: 'DELETE' });
                 if(res.ok) { 
                     alert('🗑️ Campanha desintegrada com sucesso!'); 
                     // Aqui você chama a função que recarrega a tabela da lixeira
@@ -592,7 +607,7 @@
         // Restaura para o painel
         async function restaurarEvento(id) {
             if(confirm('Deseja devolver esta campanha para o painel principal?')) {
-                const res = await fetch(`http://localhost:3000/admin/eventos/${id}/restaurar`, { method: 'PUT' });
+                const res = await fetch(`${API_BASE_URL}/admin/eventos/${id}/restaurar`, { method: 'PUT' });
                 if(res.ok) { 
                     alert('✅ Campanha restaurada!'); 
                     // Recarrega a tabela da lixeira e do painel principal
@@ -601,7 +616,7 @@
         }
         // --- FUNÇÕES DE ARQUIVO E RESTAURAÇÃO ---
         async function carregarArquivadas() {
-            const resFam = await fetch('http://localhost:3000/admin/arquivadas');
+            const resFam = await fetch(`${API_BASE_URL}/admin/arquivadas`);
             const familias = await resFam.json();
             const tbodyFam = document.getElementById('tabela-arquivadas');
             tbodyFam.innerHTML = '';
@@ -618,7 +633,7 @@
             });
 
             // 2. Carrega Eventos Arquivados 
-            const resEv = await fetch('http://localhost:3000/admin/eventos-arquivados');
+            const resEv = await fetch(`${API_BASE_URL}/admin/eventos-arquivados`);
             const eventos = await resEv.json();
             const tbodyEv = document.getElementById('tabela-eventos-arquivados');
             tbodyEv.innerHTML = '';
@@ -643,14 +658,14 @@
 
         async function restaurarFamilia(id) {
             if(confirm('Deseja devolver esta família para o painel principal ativo?')) {
-                const res = await fetch(`http://localhost:3000/admin/familias/${id}/restaurar`, { method: 'PUT' });
+                const res = await fetch(`${API_BASE_URL}/admin/familias/${id}/restaurar`, { method: 'PUT' });
                 if(res.ok) { alert('✅ Família restaurada!'); carregarArquivadas(); }
             }
         }
         async function verDetalhesArquivada(id) {
             try {
                 // Como a nossa rota do banco de dados busca pelo ID, ela consegue achar até as inativas!
-                const res = await fetch(`http://localhost:3000/familias/${id}`);
+                const res = await fetch(`${API_BASE_URL}/familias/${id}`);
                 const dados = await res.json();
                 const fotoMae = dados.responsavel.foto_url ? dados.responsavel.foto_url : 'icon-mae.png';
                 
@@ -670,12 +685,20 @@
                     dados.menores.forEach(c => {
                         const fotoC = c.foto_url ? c.foto_url : 'icon-crianca.png';
                         
+                        // Busca a data e chama a calculadora
+                        const dataDaCrianca = c.data_nascimento || c.data || c.nascimento || c.data_nasc;
+                        let textoIdade = "🎂 Sem data";
+                        if (dataDaCrianca && dataDaCrianca !== "0000-00-00" && dataDaCrianca.trim() !== "") {
+                            textoIdade = "🎂 " + calcularIdade(dataDaCrianca);
+                        }
+                        
                         listaM.innerHTML += `
                             <li style="padding: 15px 0; border-bottom: 1px dashed #ccc; display: flex; gap: 15px; align-items: flex-start;">
                                 <img src="${fotoC}" alt="Foto" style="width: 60px; height: 60px; object-fit: cover; border-radius: 10px; border: 1px solid #ccc; background: #eee; filter: grayscale(100%); opacity: 0.8;">
                                 
                                 <div style="flex: 1;">
-                                    <b>👶 ${c.nome_completo}</b> (${c.sexo || '-'})<br>
+                                    <b>👶 ${c.nome_completo}</b> (${c.sexo || '-'}) - ${textoIdade}<br>
+                                    
                                     <span style="font-size: 13px; color: #555;">Roupa: ${c.tamanho_roupa || '-'} | Sapato: ${c.tamanho_sapato || '-'}</span>
                                     <div style="margin-top: 5px; font-size: 13px; color: #333;"><b>🎁 Padrinho:</b> ${c.nome_padrinho || 'Sem vínculo'}</div>
                                 </div>
@@ -711,7 +734,7 @@
             mural.innerHTML = '<p>Carregando fotos...</p>';
 
             try {
-                const res = await fetch(`http://localhost:3000/admin/eventos/${idEvento}/fotos`);
+                const res = await fetch(`${API_BASE_URL}/admin/eventos/${idEvento}/fotos`);
                 const fotos = await res.json();
 
                 if (fotos.length === 0) {
@@ -751,7 +774,7 @@
                 // Mostra um aviso de que está carregando
                 document.getElementById('mural-fotos').innerHTML = '<p>Fazendo upload da imagem, aguarde...</p>';
 
-                const res = await fetch(`http://localhost:3000/admin/eventos/${idEvento}/fotos`, {
+                const res = await fetch(`${API_BASE_URL}/admin/eventos/${idEvento}/fotos`, {
                     method: 'POST',
                     body: formData
                 });

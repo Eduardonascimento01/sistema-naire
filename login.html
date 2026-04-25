@@ -15,10 +15,10 @@
         /* Caixa mais suave e arredondada */
         .login-caixa { 
             background: white; padding: 40px 50px; border-radius: 20px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 1000%; max-width: 400px; 
         }
         
-        .logo-ong { width: 100%; max-width: 320px; height: auto; margin-bottom: 10px; }
+        .logo-ong { width: 100%; max-width: 250px; height: auto; margin-bottom: 10px; }
         
         h1 { color: #2c3e50; font-size: 26px; margin-bottom: 25px; font-weight: 600; }
         
@@ -77,7 +77,7 @@
 <body>
 
     <div class="login-caixa">
-        <img src="LogoInstitutoNaire02.jpeg" alt="Logo Instituto NAIRE" class="logo-ong">
+        <img src="/img/FlorNaire.jpg" alt="Logo Instituto NAIRE" class="logo-ong">
         
         <h1>Acesso Restrito</h1>
 
@@ -103,7 +103,8 @@
         // Lógica do Olhinho (Mostrar/Esconder Senha)
         const inputSenha = document.getElementById('senha');
         const toggleSenha = document.getElementById('toggleSenha');
-
+        const API_BASE_URL = 'http://localhost:3000';
+        
         toggleSenha.addEventListener('click', function () {
             // Se for password vira text, se for text vira password
             const tipo = inputSenha.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -127,7 +128,7 @@
             caixaMensagem.style.display = 'none'; // Esconde mensagens anteriores
 
             try {
-                const resposta = await fetch('http://localhost:3000/login', {
+                const resposta = await fetch(`${API_BASE_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ usuario: usuarioDigitado, senha: senhaDigitada })

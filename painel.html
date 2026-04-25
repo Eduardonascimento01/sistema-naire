@@ -51,48 +51,134 @@
         .info-grupo { margin-bottom: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 5px solid #007bff; }
         input.modal-input { width: 100%; padding: 8px; margin: 5px 0 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;}
         .select-padrinho { padding: 6px; border-radius: 4px; border: 1px solid #ccc; width: 100%; max-width: 250px;}
+        
+        /* ESTILOS DA BUSCA AVANÇADA */
+        .btn-abrir-filtros {
+            background: #e9ecef; border: 1px solid #ccc; border-radius: 20px; 
+            padding: 10px 15px; cursor: pointer; font-size: 14px; font-weight: bold; 
+            color: #555; outline: none; transition: 0.3s;
+        }
+        .btn-abrir-filtros:hover { background: #d3d9df; }
+        
+        .painel-filtros {
+            display: none; background: #f8f9fa; padding: 15px; border-radius: 8px; 
+            border: 1px dashed #ccc; margin-bottom: 15px; margin-top: -5px; gap: 10px; flex-wrap: wrap; align-items: center;
+        }
+        
+        .btn-filtro {
+            background: white; border: 1px solid #007bff; color: #007bff; 
+            padding: 6px 12px; border-radius: 15px; font-size: 13px; cursor: pointer; transition: 0.2s; font-weight: bold;
+        }
+        .btn-filtro:hover, .btn-filtro.ativo {
+            background: #007bff; color: white;
+        }
     </style>
 </head>
 <body>
 
     <div class="navbar">
         <div class="navbar-logo">
-            <img src="FlorNaire.jpg" alt="Logo" class="flor-logo">
+            <img src="/img/FlorNaire.jpg" alt="Logo" class="flor-logo">
             ONG NAIRE
         </div>
         <div class="navbar-links" id="menu-dinamico"></div>
     </div>
 
     <div class="painel-caixa">
-        <div style="display: flex; align-items: center; gap: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
-            <div style="position: relative;">
-                <span style="position: absolute; left: 12px; top: 10px; font-size: 16px;">🔍</span>
-                <input type="text" id="input-busca" placeholder="Buscar mãe ou criança..." onkeyup="filtrarTabela()" style="padding: 10px 10px 10px 35px; border: 1px solid #ccc; border-radius: 20px; width: 250px; outline: none; font-size: 14px;">
-            </div>
-            <div style="flex: 1;">
-                <h2 id="titulo-tabela" style="border: none; padding: 0; margin: 0;">Famílias Cadastradas</h2>
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
+            
+            <div style="width: 280px;"></div> 
+            
+            <div style="text-align: center;">
+                <h2 id="titulo-tabela" style="border: none; padding: 0; margin: 0; font-size: 26px;">Todas as Famílias da ONG</h2>
                 <p id="mensagem-boas-vindas" style="color: #666; margin-top: 5px; margin-bottom: 0; font-size: 14px;"></p>
             </div>
-            <div style="background: #e9ecef; padding: 10px 15px; border-radius: 8px; border: 1px solid #ccc; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
-                <label style="font-weight: bold; font-size: 14px; color: #333;">🎁 Evento Entrega:</label>
-                <select id="select-evento" onchange="ativarModoEntrega()" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; margin-left: 5px; outline: none;">
+            
+            <div style="background: #f8f9fa; padding: 10px 15px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; width: 250px; justify-content: flex-end;">
+                <label style="font-weight: bold; font-size: 14px; color: #333; margin: 0; white-space: nowrap;">🎁 Evento Entrega:</label>
+                <select id="select-evento" onchange="ativarModoEntrega()" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc; outline: none; font-size: 13px; width: 100%;">
                     <option value="">-- Eventos --</option>
                 </select>
             </div>
         </div>
 
-        <div class="dashboard-container">
-            <div class="cartao-dash familias">
-                <h3>Famílias Cadastradas</h3>
-                <p id="dash-familias">0</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 15px;">
+            
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 12px; top: 10px; font-size: 16px;">🔍</span>
+                    <input type="text" id="input-busca" placeholder="Buscar mãe ou criança..." onkeyup="aplicarFiltros()" style="padding: 10px 10px 10px 35px; border: 1px solid #ccc; border-radius: 20px; width: 300px; outline: none; font-size: 14px;">
+                </div>
+                
+                <button class="btn-abrir-filtros" onclick="toggleFiltros()" style="width: max-content; display: flex; align-items: center; gap: 5px;">⚙️ Busca Avançada</button>
             </div>
-            <div class="cartao-dash criancas">
-                <h3>Crianças Atendidas</h3>
-                <p id="dash-criancas">0</p>
+
+            <div class="dashboard-container" style="margin: 0; gap: 10px;">
+                <div class="cartao-dash familias">
+                    <h3>Famílias Cadastradas</h3>
+                    <p id="dash-familias">0</p>
+                </div>
+                <div class="cartao-dash criancas">
+                    <h3>Crianças Atendidas</h3>
+                    <p id="dash-criancas">0</p>
+                </div>
+                <div class="cartao-dash apadrinhadas">
+                    <h3>Crianças Apadrinhadas</h3>
+                    <p id="dash-apadrinhadas">0</p>
+                </div>
             </div>
-            <div class="cartao-dash apadrinhadas">
-                <h3>Crianças Apadrinhadas</h3>
-                <p id="dash-apadrinhadas">0</p>
+        </div>
+
+        <div id="painel-filtros" class="painel-filtros" style="display: none; flex-direction: column; gap: 15px;">
+        <div style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+        <span style="font-size: 13px; font-weight: bold; color: #666;">Filtros:</span>
+        <button id="btn-filtro-padrinho" class="btn-filtro" onclick="toggleBotaoFiltro(this)">🎁 Precisam de Padrinho</button>
+        <button id="btn-filtro-pendente" class="btn-filtro" onclick="toggleBotaoFiltro(this)">⏳ Fichas Pendentes</button>
+        <button class="btn-filtro" style="border-color: #dc3545; color: #dc3545;" onclick="limparTodosFiltros()">🔄 Limpar Tudo</button>
+        </div>
+
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div class="grupo-filtro">
+                    <label style="display: block; font-size: 11px; font-weight: bold; color: #777;">Qtd. Filhos</label>
+                    <select id="f-filhos" onchange="aplicarFiltros()" style="padding: 5px; border-radius: 5px;">
+                        <option value="">Todos</option>
+                        <option value="0">Sem filhos</option>
+                        <option value="1">1 Filho</option>
+                        <option value="2">2 Filhos</option>
+                        <option value="3+">3 ou mais</option>
+                    </select>
+                </div>
+
+                <div class="grupo-filtro">
+                    <label style="display: block; font-size: 11px; font-weight: bold; color: #777;">Gênero</label>
+                    <select id="f-sexo" onchange="aplicarFiltros()" style="padding: 5px; border-radius: 5px;">
+                        <option value="">Todos</option>
+                        <option value="M">Masculino (M)</option>
+                        <option value="F">Feminino (F)</option>
+                    </select>
+                </div>
+
+                <div class="grupo-filtro">
+                    <label style="display: block; font-size: 11px; font-weight: bold; color: #777;">Tam. Roupa</label>
+                    <select id="f-roupa" onchange="aplicarFiltros()" style="padding: 5px; border-radius: 5px;">
+                        <option value="">Todos</option>
+                        <option value="2">2</option><option value="4">4</option><option value="6">6</option>
+                        <option value="8">8</option><option value="10">10</option><option value="12">12</option>
+                        <option value="14">14</option><option value="P">P</option><option value="M">M</option><option value="G">G</option>
+                    </select>
+                </div>
+
+                <div class="grupo-filtro">
+                    <label style="display: block; font-size: 11px; font-weight: bold; color: #777;">Tam. Sapato</label>
+                    <select id="f-sapato" onchange="aplicarFiltros()" style="padding: 5px; border-radius: 5px;">
+                        <option value="">Todos</option>
+                        <option value="20-25">20 ao 25</option>
+                        <option value="26-30">26 ao 30</option>
+                        <option value="31-35">31 ao 35</option>
+                        <option value="36+">36 ou mais</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -120,7 +206,7 @@
            <div class="info-grupo" style="border-left-color: #007bff;">
                 <div style="display: flex; gap: 20px; align-items: flex-start;">
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                        <img id="modal-foto-mae" src="icon-mae.png" alt="Foto da Mãe" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #ccc; background: #eee;">
+                        <img id="modal-foto-mae" src="/img/icon-mae.jpg" alt="Foto da Mãe" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #ccc; background: #eee;">
                         <button type="button" id="btn-mudar-foto-mae" class="btn-acao" style="background-color: #6c757d; font-size: 11px; padding: 4px 8px; border: none; border-radius: 5px; cursor: pointer; color: white;">📷 Mudar Foto</button>
                     </div>
                     
@@ -149,6 +235,12 @@
             <form id="formEditarFamilia">
                 <input type="hidden" id="edit-id">
                 
+                <div class="info-grupo" id="bloco-editar-criancas" style="border-left-color: #fd7e14; display: none;">
+                    <label><b>👶 Atualizar Tamanhos das Crianças:</b></label>
+                    <div id="lista-editar-criancas" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                        </div>
+                </div>
+
                 <div class="info-grupo">
                     <label><b>Nome da Responsável:</b></label>
                     <input type="text" id="edit-nome" class="modal-input">
@@ -173,14 +265,29 @@
                             <label><b>Pai trabalha?</b></label>
                             <input type="text" id="edit-pai-trab" class="modal-input">
                         </div>
-                        <div style="flex: 2;">
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <div style="flex: 1;">
+                            <label><b>Numero do NIS:</b></label>
+                            <input type="text" id="edit-nis" class="modal-input" placeholder="Número do NIS">
+                        </div>
+                        <div style="flex: 1;">
                             <label><b>Outra ONG? Qual?</b></label>
                             <input type="text" id="edit-outra-ong" class="modal-input" placeholder="Deixe em branco se não">
                         </div>
+
                     </div>
                 </div>
 
-                <button type="submit" class="btn-acao" style="background-color: #28a745; width: 100%; padding: 12px; font-size: 16px;">💾 Salvar Alterações</button>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-acao" style="background-color: #28a745; flex: 2; padding: 12px; font-size: 16px;">
+                        💾 Salvar Alterações
+                    </button>
+                    
+                    <button type="button" class="btn-acao" style="background-color: #6c757d; flex: 1; padding: 12px; font-size: 16px;" onclick="arquivarPeloModal()">
+                        📦 Arquivar Família
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -221,6 +328,7 @@
         const nomeLogado = localStorage.getItem('nomeVoluntario');
         const nivelAcesso = localStorage.getItem('nivelAcesso'); 
         const idLogado = localStorage.getItem('idVoluntario'); 
+        const API_BASE_URL = 'http://localhost:3000';
 
         if (!nomeLogado) { window.location.href = 'login.html'; }
 
@@ -228,29 +336,39 @@
             const menuContainer = document.getElementById('menu-dinamico');
             let html = '';
             
-            // Só o Admin vê o botão de configurações
             if (nivelAcesso === 'admin') {
                 html += `<a href="painel-admin.html" class="nav-btn admin">⚙️ Admin</a>`;
             }
             
             document.getElementById('titulo-tabela').innerText = 'Todas as Famílias da ONG';
             
-       
             html += `<a href="cadastro.html" class="nav-btn destaque">➕ Novo Cadastro</a><button onclick="sairDoSistema()" class="nav-btn sair">Sair</button>`;
             menuContainer.innerHTML = html;
             document.getElementById('mensagem-boas-vindas').innerHTML = `Olá, <b>${nomeLogado}</b>`;
         }
 
-       async function carregarFamilias() {
+        // --- CALCULADORA DE IDADE ---
+        function calcularIdade(dataString) {
+            if (!dataString) return '-';
+            const nascimento = new Date(dataString);
+            const hoje = new Date();
+            let idade = hoje.getFullYear() - nascimento.getFullYear();
+            const m = hoje.getMonth() - nascimento.getMonth();
+            if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+                idade--;
+            }
+            return idade + (idade === 1 ? ' ano' : ' anos');
+        }
+
+        async function carregarFamilias() {
             try {
-                const url = 'http://localhost:3000/familias';
+                const url = `${API_BASE_URL}/familias`;
                 const res = await fetch(url);
                 const familias = await res.json();
                 
                 const tbody = document.getElementById('tabela-familias');
                 tbody.innerHTML = '';
 
-                // VARIÁVEIS DO DASHBOARD ZERADAS
                 let somaFamilias = 0;
                 let somaCriancas = 0;
                 let somaApadrinhadas = 0;
@@ -259,8 +377,10 @@
                     const isArquivada = f.status === 'inativo';
                     const total = Number(f.total_filhos) || 0;
                     const apad = Number(f.apadrinhados) || 0;
-                    
-                    // SÓ SOMA NO DASHBOARD SE A FAMÍLIA ESTIVER ATIVA
+                    const roupas = f.lista_roupas ? f.lista_roupas.toLowerCase() : '';
+                    const sapatos = f.lista_sapatos ? f.lista_sapatos.toLowerCase() : '';
+                    const sexos = f.lista_sexos ? f.lista_sexos.toUpperCase() : '';
+
                     if (!isArquivada) {
                         somaFamilias++;
                         somaCriancas += total;
@@ -271,9 +391,8 @@
                                 (apad === total ? `<span class="badge">100%</span>` : 
                                 (apad > 0 ? `<span class="badge badge-alerta">${apad}/${total}</span>` : `<span class="badge badge-erro">0/${total}</span>`));
             
-                    // INTELIGÊNCIA DO MODO ENTREGA
                     let btnEntrega = '';
-                    if (modoEntregaAtivo && !isArquivada) { // Não faz entrega pra família arquivada
+                    if (modoEntregaAtivo && !isArquivada) { 
                         if (familiasComEntrega.includes(f.id)) {
                             btnEntrega = `<button class="btn-acao" style="background-color: #28a745; cursor: default;">✅ Entregue</button>`;
                         } else {
@@ -281,7 +400,6 @@
                         }
                     }
 
-                    // TEXTOS E SELOS DE VALIDAÇÃO
                     let textoValidado = "✅ Ativa";
                     let textoPendente = "⏳ Pendente";
                     let estiloSelo = f.validado ? 
@@ -298,9 +416,8 @@
                         }
                     }
                                         
-                    // 👉 ÍCONE DE ARQUIVADA E CONTROLE VISUAL
                     let iconeArquivada = isArquivada ? `<span class="badge" style="background-color: #6c757d; margin-left: 5px;">📦 Inativo</span>` : '';
-                    let displayLinha = isArquivada ? 'none' : 'table-row'; // Esconde as arquivadas por padrão
+                    let displayLinha = isArquivada ? 'none' : 'table-row'; 
                     let classeExtra = isArquivada ? 'arquivada' : 'ativa';
 
                     let botoesAcao = '';
@@ -311,12 +428,11 @@
                             ${btnEntrega}
                             <button class="btn-acao btn-detalhes" onclick="abrirFichaCompleta(${f.id})">👁️ Detalhes</button>
                             ${nivelAcesso === 'admin' ? `<button class="btn-acao btn-editar" onclick="editarFamilia(${f.id})">✏️ Editar</button>` : ''}
-                            ${nivelAcesso === 'admin' ? `<button class="btn-acao" style="background-color: #6c757d;" onclick="apagarFamilia(${f.id})">📦 Arquivar</button>` : ''}
                         `;
                     }
 
                     tbody.innerHTML += `
-                        <tr class="linha-familia ${classeExtra}" data-nomes="${f.nome_mae.toLowerCase()} ${f.nomes_criancas ? f.nomes_criancas.toLowerCase() : ''}" style="display: ${displayLinha};">
+                        <tr class="linha-familia ${classeExtra}" data-nomes="${f.nome_mae.toLowerCase()} ${f.nomes_criancas ? f.nomes_criancas.toLowerCase() : ''}" data-filhos="${total}" data-apad="${apad}" data-validado="${f.validado}" data-roupas="${roupas}" data-sapatos="${sapatos}" data-sexos="${sexos}" style="display: ${displayLinha};">
                             <td>
                                 <b>${f.nome_mae}</b><br>
                                 <div style="margin-top: 5px;">
@@ -340,26 +456,25 @@
 
             } catch (e) { console.error("Erro ao carregar famílias:", e); }
         }
-       // --- FUNÇÕES DA FICHA COMPLETA E EDIÇÃO ---
+
         async function abrirFichaCompleta(idFamilia) {
-            const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}`);
+            const resposta = await fetch(`${API_BASE_URL}/familias/${idFamilia}`);
             const dados = await resposta.json();
-            const resPadrinhos = await fetch('http://localhost:3000/admin/padrinhos');
+            const resPadrinhos = await fetch(`${API_BASE_URL}/admin/padrinhos`);
             const listaPadrinhos = await resPadrinhos.json();
             const isArquivada = dados.responsavel.status === 'inativo';
 
-            // Manda o JavaScript apenas trocar a foto (sem criar caixas novas)
-            const fotoMae = dados.responsavel.foto_url ? dados.responsavel.foto_url : 'icon-mae.png';
+            const fotoMae = dados.responsavel.foto_url ? dados.responsavel.foto_url : '/img/icon-mae.png';
             document.getElementById('modal-foto-mae').src = fotoMae;
 
             document.getElementById('modal-nome-mae').innerText = dados.responsavel.nome_mae;
             document.getElementById('modal-cpf').innerText = dados.responsavel.cpf || '-';
+            document.getElementById('modal-nis').innerText = dados.responsavel.nis || '-';
             document.getElementById('modal-endereco').innerText = dados.responsavel.endereco || '-';
             document.getElementById('modal-telefone').innerText = dados.responsavel.fones_contato || '-';
             document.getElementById('modal-voluntario').innerText = dados.responsavel.nome_voluntario_responsavel || 'Sem vínculo';
             document.getElementById('modal-outra-ong').innerText = dados.responsavel.outra_ong || 'Não participa de outra ONG';
 
-            // Esconde ou mostra o botão de mudar foto da mãe
             const btnFoto = document.getElementById('btn-mudar-foto-mae');
             if (isArquivada) {
                 btnFoto.style.display = 'none';
@@ -391,18 +506,18 @@
                         `;
                     }
                     
-                    const fotoC = c.foto_url ? c.foto_url : 'icon-crianca.png';
+                    const fotoC = c.foto_url ? c.foto_url : '/img/icon-crianca.png';
+                                      
+                    const idadeCalculada = calcularIdade(c.data_nascimento || c.data);
 
                     listaM.innerHTML += `
                         <li style="background:#fff; padding:15px; margin-bottom:10px; border-radius:5px; border-left: 4px solid #17a2b8; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 15px; align-items: flex-start;">
-                            
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
                                 <img id="modal-foto-crianca-${c.id}" src="${fotoC}" alt="Foto da Criança" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px; border: 1px solid #ccc; background: #eee;">
                                 ${!isArquivada ? `<button type="button" class="btn-acao" style="background-color: #6c757d; font-size: 10px; padding: 4px;" onclick="mudarFotoCrianca(${c.id})">📷 Mudar Foto</button>` : ''}
                             </div>
-                            
                             <div style="flex: 1;">
-                                <strong>${c.nome_completo} (${c.sexo || '-'})</strong><br>
+                                <strong>${c.nome_completo} (${c.sexo || '-'}) - 🎂 ${idadeCalculada}</strong><br>
                                 <span style="font-size: 13px; color: #555;">Roupa: ${c.tamanho_roupa || '-'} | Sapato: ${c.tamanho_sapato || '-'}</span>
                                 ${controlePadrinho}
                             </div>
@@ -421,12 +536,11 @@
             document.getElementById('modalFicha').style.display = 'block';
         }
 
-        // --- AS DUAS FUNÇÕES QUE COMUNICAM COM O BANCO ---
         async function mudarFotoMae(idFamilia) {
             let novaFoto = prompt("Digite o nome exato do arquivo (ex: familia-silva.jpg) ou cole o link de uma imagem:");
             if (novaFoto && novaFoto.trim() !== '') {
                 try {
-                    await fetch(`http://localhost:3000/familias/${idFamilia}/foto`, {
+                    await fetch(`${API_BASE_URL}/familias/${idFamilia}/foto`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ foto_url: novaFoto })
@@ -440,7 +554,7 @@
             let novaFoto = prompt("Digite o nome exato do arquivo (ex: joaozinho.jpg) ou cole o link de uma imagem:");
             if (novaFoto && novaFoto.trim() !== '') {
                 try {
-                    await fetch(`http://localhost:3000/menores/${idCrianca}/foto`, {
+                    await fetch(`${API_BASE_URL}/menores/${idCrianca}/foto`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ foto_url: novaFoto })
@@ -450,7 +564,6 @@
             }
         }
 
-        // --- LÓGICA DO NOVO FILHO (Agora separada e segura) ---
         function abrirModalNovaCrianca(idFamilia) {
             document.getElementById('nova-crianca-familia-id').value = idFamilia;
             document.getElementById('modalNovaCrianca').style.display = 'block';
@@ -458,7 +571,7 @@
 
         function fecharModalNovaCrianca() {
             document.getElementById('modalNovaCrianca').style.display = 'none';
-            document.getElementById('formNovaCrianca').reset(); // Limpa o formulário
+            document.getElementById('formNovaCrianca').reset(); 
         }
 
         document.getElementById('formNovaCrianca').addEventListener('submit', async (e) => {
@@ -473,46 +586,7 @@
                 sexo: document.getElementById('nova-crianca-sexo').value
             };
 
-            const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}/criancas`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(novaCrianca)
-            });
-
-            if (resposta.ok) {
-                alert('👶 Criança adicionada com sucesso!');
-                fecharModalNovaCrianca();
-                abrirFichaCompleta(idFamilia); 
-                carregarFamilias(); 
-            } else {
-                alert('Erro ao salvar a criança.');
-            }
-        });
-
-        // --- LÓGICA DO NOVO FILHO ---
-        function abrirModalNovaCrianca(idFamilia) {
-            document.getElementById('nova-crianca-familia-id').value = idFamilia;
-            document.getElementById('modalNovaCrianca').style.display = 'block';
-        }
-
-        function fecharModalNovaCrianca() {
-            document.getElementById('modalNovaCrianca').style.display = 'none';
-            document.getElementById('formNovaCrianca').reset(); // Limpa o formulário
-        }
-
-        document.getElementById('formNovaCrianca').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const idFamilia = document.getElementById('nova-crianca-familia-id').value;
-            
-            const novaCrianca = {
-                nome: document.getElementById('nova-crianca-nome').value,
-                data: document.getElementById('nova-crianca-data').value,
-                roupa: document.getElementById('nova-crianca-roupa').value,
-                sapato: document.getElementById('nova-crianca-sapato').value,
-                sexo: document.getElementById('nova-crianca-sexo').value
-            };
-
-            const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}/criancas`, {
+            const resposta = await fetch(`${API_BASE_URL}/familias/${idFamilia}/criancas`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(novaCrianca)
@@ -528,50 +602,100 @@
             }
         });
     
-        async function editarFamilia(id) {
-            const res = await fetch(`http://localhost:3000/familias/${id}`);
+       async function editarFamilia(id) {
+            const res = await fetch(`${API_BASE_URL}/familias/${id}`);
             const dados = await res.json();
             const r = dados.responsavel;
+            const menores = dados.menores; 
             
             document.getElementById('edit-id').value = r.id;
             document.getElementById('edit-nome').value = r.nome_mae;
             document.getElementById('edit-cpf').value = r.cpf;
+            document.getElementById('edit-nis').value = r.nis || "";
             document.getElementById('edit-titulo').value = r.titulo_eleitor || "";
             document.getElementById('edit-telefone').value = r.fones_contato;
             document.getElementById('edit-endereco').value = r.endereco;
             document.getElementById('edit-mae-trab').value = r.mae_trabalha || "";
             document.getElementById('edit-pai-trab').value = r.pai_trabalha || "";
             document.getElementById('edit-outra-ong').value = r.outra_ong || "";
+
+            const divCriancas = document.getElementById('lista-editar-criancas');
+            const blocoCriancas = document.getElementById('bloco-editar-criancas');
+            divCriancas.innerHTML = ''; 
+
+            if (menores && menores.length > 0) {
+                blocoCriancas.style.display = 'block';
+                menores.forEach(c => {
+                    divCriancas.innerHTML += `
+                        <div style="background: white; padding: 10px; border: 1px solid #ccc; border-radius: 5px; display: flex; gap: 10px; align-items: center;">
+                            <input type="hidden" class="edit-crianca-id" value="${c.id}">
+                            <div style="flex: 2; font-size: 13px;"><b>${c.nome_completo}</b><br><span style="color: #666;">${calcularIdade(c.data_nascimento || c.data)}</span></div>
+                            <div style="flex: 1;"><label style="font-size: 10px;">Roupa:</label><input type="text" class="edit-crianca-roupa modal-input" style="margin:0;" value="${c.tamanho_roupa || ''}"></div>
+                            <div style="flex: 1;"><label style="font-size: 10px;">Sapato:</label><input type="text" class="edit-crianca-sapato modal-input" style="margin:0;" value="${c.tamanho_sapato || ''}"></div>
+                        </div>
+                    `;
+                });
+            } else {
+                blocoCriancas.style.display = 'none';
+            }
+
             document.getElementById('modalEditar').style.display = 'block';
         }
 
         document.getElementById('formEditarFamilia').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
-            const dados = {
+            
+            const dadosMae = {
                 nome_mae: document.getElementById('edit-nome').value,
                 cpf: document.getElementById('edit-cpf').value,
+                nis: document.getElementById('edit-nis').value,
                 titulo_eleitor: document.getElementById('edit-titulo').value,
                 fones_contato: document.getElementById('edit-telefone').value,
                 endereco: document.getElementById('edit-endereco').value,
                 mae_trabalha: document.getElementById('edit-mae-trab').value,
                 pai_trabalha: document.getElementById('edit-pai-trab').value
             };
-            await fetch(`http://localhost:3000/familias/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
-            alert('✅ Atualizado!'); fecharModalEditar(); carregarFamilias();
+            await fetch(`${API_BASE_URL}/familias/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dadosMae) });
+
+            const idsCriancas = document.getElementsByClassName('edit-crianca-id');
+            const roupas = document.getElementsByClassName('edit-crianca-roupa');
+            const sapatos = document.getElementsByClassName('edit-crianca-sapato');
+
+            for(let i = 0; i < idsCriancas.length; i++) {
+                const cId = idsCriancas[i].value;
+                const cRoupa = roupas[i].value;
+                const cSapato = sapatos[i].value;
+
+                await fetch(`${API_BASE_URL}/menores/${cId}/tamanhos`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tamanho_roupa: cRoupa, tamanho_sapato: cSapato })
+                });
+            }
+
+            alert('✅ Ficha atualizada com sucesso!'); 
+            fecharModalEditar(); 
+            carregarFamilias();
         });
 
         async function salvarMatch(idC, idF) {
             const pId = document.getElementById(`select-padrinho-${idC}`).value;
-            await fetch('http://localhost:3000/vincular-padrinho', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ crianca_id: idC, padrinho_id: pId || null }) });
+            await fetch(`${API_BASE_URL}/vincular-padrinho`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ crianca_id: idC, padrinho_id: pId || null }) });
             alert('✅ Salvo!'); abrirFichaCompleta(idF); carregarFamilias();
         }
 
         async function apagarFamilia(id) {
             if (confirm('📦 Deseja ARQUIVAR esta família? \n\nEla sairá da lista principal, mas o histórico de doações e as crianças continuarão salvas no banco de dados da ONG.')) {
-                await fetch(`http://localhost:3000/familias/${id}?autor=${nomeLogado}`, { method: 'DELETE' });
+                await fetch(`${API_BASE_URL}/familias/${id}?autor=${nomeLogado}`, { method: 'DELETE' });
                 carregarFamilias();
             }
+        }
+
+        async function arquivarPeloModal() {
+            const id = document.getElementById('edit-id').value;
+            await apagarFamilia(id);
+            fecharModalEditar();
         }
 
         function fecharModal() { document.getElementById('modalFicha').style.display = 'none'; }
@@ -584,34 +708,12 @@
             if (e.target == document.getElementById('modalNovaCrianca')) fecharModalNovaCrianca();
         }
               
-        // --- FUNÇÃO DA BARRA DE PESQUISA ---
-        function filtrarTabela() {
-            let termo = document.getElementById('input-busca').value.toLowerCase();
-            let linhas = document.getElementsByClassName('linha-familia');
-            
-            for (let i = 0; i < linhas.length; i++) {
-                let nomes = linhas[i].getAttribute('data-nomes');
-                let isArquivada = linhas[i].classList.contains('arquivada');
-
-                if (termo === '') {
-                    // Se não buscou nada, esconde as arquivadas e mostra as ativas
-                    linhas[i].style.display = isArquivada ? 'none' : 'table-row';
-                } else {
-                    // Se digitou algo, mostra qualquer linha que bater com a pesquisa (ativa ou arquivada)
-                    if (nomes.includes(termo)) {
-                        linhas[i].style.display = 'table-row';
-                    } else {
-                        linhas[i].style.display = 'none';
-                    }
-                }
-            }
-        }
         // --- FUNÇÕES DO MODO DE ENTREGA ---
         let modoEntregaAtivo = null; 
         let familiasComEntrega = []; 
 
         async function carregarEventosDropdown() {
-            const res = await fetch('http://localhost:3000/eventos');
+            const res = await fetch(`${API_BASE_URL}/eventos`);
             const eventos = await res.json();
             const select = document.getElementById('select-evento');
             eventos.forEach(e => {
@@ -629,55 +731,52 @@
             }
 
             modoEntregaAtivo = eventoId;
-            // Busca no banco quem já pegou a doação neste evento específico
-            const res = await fetch(`http://localhost:3000/eventos/${eventoId}/entregas`);
+            const res = await fetch(`${API_BASE_URL}/eventos/${eventoId}/entregas`);
             familiasComEntrega = await res.json(); 
             carregarFamilias();
         }
 
         async function registrarEntrega(idFamilia) {
             if (!modoEntregaAtivo) return;
-            const res = await fetch('http://localhost:3000/entregas', {
+            const res = await fetch(`${API_BASE_URL}/entregas`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ evento_id: modoEntregaAtivo, familia_id: idFamilia })
             });
             
             if (res.ok) {
-                familiasComEntrega.push(idFamilia); // Adiciona na lista visual
-                carregarFamilias(); // Atualiza a linha para ficar verde (✅ Entregue)
+                familiasComEntrega.push(idFamilia); 
+                carregarFamilias(); 
             }
         }
+        
         async function alternarValidacao(id) {
-            await fetch(`http://localhost:3000/admin/familias/${id}/validar`, { method: 'PUT' });
-            carregarFamilias(); // Recarrega a tabela na hora para trocar a cor do selo
+            await fetch(`${API_BASE_URL}/admin/familias/${id}/validar`, { method: 'PUT' });
+            carregarFamilias(); 
         }
+        
         // --- AS DUAS FUNÇÕES V2.0 (UPLOAD DE ARQUIVO REAL) ---
         async function mudarFotoMae(idFamilia) {
-            // Cria um "botão de arquivo" invisível
             const inputArquivo = document.createElement('input');
             inputArquivo.type = 'file';
             inputArquivo.accept = 'image/png, image/jpeg, image/jpg'; 
             
-            // Quando o voluntário escolhe a foto na janela do PC:
             inputArquivo.onchange = async (evento) => {
                 const arquivo = evento.target.files[0];
                 if (!arquivo) return;
 
-                // Prepara a foto para viajar pela internet
                 const formData = new FormData();
                 formData.append('foto', arquivo);
 
                 try {
-                    const resposta = await fetch(`http://localhost:3000/familias/${idFamilia}/upload-foto`, {
+                    const resposta = await fetch(`${API_BASE_URL}/familias/${idFamilia}/upload-foto`, {
                         method: 'POST',
-                        body: formData // Envia o arquivo!
+                        body: formData 
                     });
 
                     const dados = await resposta.json();
 
                     if (resposta.ok) {
-                        // Atualiza a foto na tela na mesma hora (colocamos a / na frente pro navegador achar a pasta)
                         document.getElementById('modal-foto-mae').src = '/' + dados.foto_url;
                     } else {
                         alert(dados.erro);
@@ -687,7 +786,6 @@
                 }
             };
 
-            // Finge que alguém clicou no botão invisível para abrir a galeria
             inputArquivo.click();
         }
 
@@ -704,7 +802,7 @@
                 formData.append('foto', arquivo);
 
                 try {
-                    const resposta = await fetch(`http://localhost:3000/menores/${idCrianca}/upload-foto`, {
+                    const resposta = await fetch(`${API_BASE_URL}/menores/${idCrianca}/upload-foto`, {
                         method: 'POST',
                         body: formData 
                     });
@@ -723,6 +821,74 @@
 
             inputArquivo.click();
         }
+
+
+        function toggleFiltros() {
+            const painel = document.getElementById('painel-filtros');
+            painel.style.display = (painel.style.display === 'flex' || painel.style.display === 'block') ? 'none' : 'flex';
+        }
+
+        function toggleBotaoFiltro(btn) {
+            btn.classList.toggle('ativo');
+            aplicarFiltros();
+        }
+
+        function aplicarFiltros() {
+            const termoBusca = document.getElementById('input-busca').value.toLowerCase();
+            
+            const filtroPadrinho = document.getElementById('btn-filtro-padrinho').classList.contains('ativo');
+            const filtroPendente = document.getElementById('btn-filtro-pendente').classList.contains('ativo');
+            
+            const valFilhos = document.getElementById('f-filhos').value;
+            const valSexo = document.getElementById('f-sexo').value;
+            const valRoupa = document.getElementById('f-roupa').value.toLowerCase();
+            const valSapato = document.getElementById('f-sapato').value;
+
+            const linhas = document.getElementsByClassName('linha-familia');
+
+            for (let i = 0; i < linhas.length; i++) {
+                if (linhas[i].classList.contains('arquivada')) continue; 
+
+                const nomes = linhas[i].getAttribute('data-nomes');
+                const totalFilhos = parseInt(linhas[i].getAttribute('data-filhos')) || 0;
+                const apadrinhados = parseInt(linhas[i].getAttribute('data-apad')) || 0;
+                const validado = linhas[i].getAttribute('data-validado') === '1' || linhas[i].getAttribute('data-validado') === 'true';
+                const listaRoupa = linhas[i].getAttribute('data-roupas');
+                const listaSapato = linhas[i].getAttribute('data-sapatos');
+                const listaSexo = linhas[i].getAttribute('data-sexos');
+
+                let mostrar = nomes.includes(termoBusca);
+
+                if (mostrar && filtroPadrinho) mostrar = (totalFilhos > 0 && apadrinhados < totalFilhos);
+                if (mostrar && filtroPendente) mostrar = (!validado);
+                
+                if (mostrar && valFilhos !== "") {
+                    if (valFilhos === "3+") mostrar = (totalFilhos >= 3);
+                    else mostrar = (totalFilhos == valFilhos);
+                }
+
+                if (mostrar && valSexo !== "") mostrar = listaSexo.includes(valSexo);
+                if (mostrar && valRoupa !== "") mostrar = listaRoupa.split(',').includes(valRoupa);
+                
+                if (mostrar && valSapato !== "") {
+                    const saps = listaSapato.split(',').map(Number);
+                    if (valSapato === "20-25") mostrar = saps.some(s => s >= 20 && s <= 25);
+                    else if (valSapato === "26-30") mostrar = saps.some(s => s >= 26 && s <= 30);
+                    else if (valSapato === "31-35") mostrar = saps.some(s => s >= 31 && s <= 35);
+                    else if (valSapato === "36+") mostrar = saps.some(s => s >= 36);
+                }
+
+                linhas[i].style.display = mostrar ? 'table-row' : 'none';
+            }
+        }
+
+        function limparTodosFiltros() {
+            document.getElementById('input-busca').value = '';
+            document.querySelectorAll('.painel-filtros .btn-filtro').forEach(b => b.classList.remove('ativo'));
+            document.querySelectorAll('.painel-filtros select').forEach(s => s.value = '');
+            aplicarFiltros(); 
+        }
+        
         montarMenu(); carregarFamilias(); carregarEventosDropdown();
     </script>
 </body> 

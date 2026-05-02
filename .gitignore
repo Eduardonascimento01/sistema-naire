@@ -1,0 +1,8 @@
+# Dependências (nunca enviar)
+node_modules/
+
+# Arquivos de ambiente com senhas
+.env
+
+# Pasta de uploads (opcional – se não quiser versionar as fotos)
+uploads/

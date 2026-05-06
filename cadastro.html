@@ -116,171 +116,190 @@
         </form>
     </div>
 
-    <script>
-        const nomeLogado = localStorage.getItem('nomeVoluntario');
-        const idVoluntarioCadastro = localStorage.getItem('idVoluntario'); 
-        const API_BASE_URL = 'http://localhost:3000';
-        
-        if (!nomeLogado || !idVoluntarioCadastro) {
-            alert('Acesso negado. Por favor, faça login primeiro.');
-            window.location.href = 'login.html';
-        } else {
-            const h2 = document.getElementById('titulo-pagina');
-            h2.innerHTML = `Ficha de Cadastro <br> <span style="font-size: 14px; color: #007bff;">Logado como: ${nomeLogado}</span>`;
-        }
-
-        // --- VALIDAÇÃO DE CPF EM TEMPO REAL ---
-        async function verificarCpfEmTempoReal() {
-            const inputCpf = document.getElementById('cpf'); // <- Ajustado para o seu ID exato!
-            const aviso = document.getElementById('aviso-cpf');
+        <script>
+            const nomeLogado = localStorage.getItem('nomeVoluntario');
+            const idVoluntarioCadastro = localStorage.getItem('idVoluntario'); 
+            const API_BASE_URL = 'http://localhost:3000';
             
-            // Tenta achar o seu botão de salvar (se o id for diferente, ajuste aqui)
-            const botaoSalvar = document.getElementById('btn-salvar') || document.querySelector('button[type="submit"]'); 
-            
-            const cpfValor = inputCpf.value.trim();
-
-            if (cpfValor.length > 0) {
-                try {
-                    const res = await fetch(`http://localhost:3000/verificar-cpf/${cpfValor}`);
-                    const dados = await res.json();
-
-                    if (dados.existe) {
-                        aviso.style.display = 'block';
-                        inputCpf.style.borderColor = '#dc3545';
-                        inputCpf.style.backgroundColor = '#f8d7da';
-                        if(botaoSalvar) botaoSalvar.disabled = true; 
-                    } else {
-                        aviso.style.display = 'none';
-                        inputCpf.style.borderColor = '#28a745';
-                        inputCpf.style.backgroundColor = 'white';
-                        if(botaoSalvar) botaoSalvar.disabled = false;
-                    }
-                } catch (e) {
-                    console.error("Erro na verificação de CPF", e);
-                }
+            if (!nomeLogado || !idVoluntarioCadastro) {
+                alert('Acesso negado. Por favor, faça login primeiro.');
+                window.location.href = 'login.html';
             } else {
-                aviso.style.display = 'none';
-                inputCpf.style.borderColor = '#ccc';
-                inputCpf.style.backgroundColor = 'white';
-                if(botaoSalvar) botaoSalvar.disabled = false;
+                const h2 = document.getElementById('titulo-pagina');
+                h2.innerHTML = `Ficha de Cadastro <br> <span style="font-size: 14px; color: #007bff;">Logado como: ${nomeLogado}</span>`;
             }
-        }
 
-        function adicionarCrianca() {
-            const lista = document.getElementById('lista-criancas');
-            const idCrianca = Date.now(); 
-            const htmlCrianca = `
-                <div class="crianca-item" id="crianca-${idCrianca}">
-                    <div style="flex: 3;">
-                        <label>Nome Completo: *</label>
-                        <input type="text" class="nome-crianca obrigatorio">
-                    </div>
-                    <div style="flex: 2;">
-                        <label>Nascimento: *</label>
-                        <input type="date" class="data-crianca obrigatorio">
-                    </div>
-                    <div style="flex: 1;">
-                        <label>Roupa:</label>
-                        <input type="text" class="roupa-crianca" placeholder="Ex: 10">
-                    </div>
-                    <div style="flex: 1;">
-                        <label>Sapato:</label>
-                        <input type="text" class="sapato-crianca" placeholder="Ex: 32">
-                    </div>
-                    
-                    <div style="flex: 1;">
-                        <label>Sexo: *</label>
-                        <select class="sexo-crianca obrigatorio">
-                            <option value="">--</option>
-                            <option value="M">M</option>
-                            <option value="F">F</option>
-                        </select>
-                    </div>
+            // ========== FUNÇÃO AUXILIAR PARA REQUISIÇÕES AUTENTICADAS ==========
+            async function apiFetch(url, options = {}) {
+                const token = localStorage.getItem('token');
+                if (!options.headers) options.headers = {};
+                if (token) {
+                    options.headers['Authorization'] = `Bearer ${token}`;
+                }
+                // Não sobrescreve Content-Type se for FormData (upload de arquivos)
+                if (!options.headers['Content-Type'] && !(options.body instanceof FormData)) {
+                    options.headers['Content-Type'] = 'application/json';
+                }
+                const resposta = await fetch(url, options);
+                if (resposta.status === 401) {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                    throw new Error('Não autorizado');
+                }
+                return resposta;
+            }
 
-                    <button type="button" class="btn-remover" onclick="removerCrianca(${idCrianca})">X</button>
-                </div>
-            `;
-            lista.insertAdjacentHTML('beforeend', htmlCrianca);
+            // --- VALIDAÇÃO DE CPF EM TEMPO REAL ---
+            async function verificarCpfEmTempoReal() {
+                const inputCpf = document.getElementById('cpf');
+                const aviso = document.getElementById('aviso-cpf');
+                const botaoSalvar = document.getElementById('btn-salvar') || document.querySelector('button[type="submit"]'); 
+                const cpfValor = inputCpf.value.trim();
+
+                if (cpfValor.length > 0) {
+                    try {
+                        // Agora usa apiFetch (com token)
+                        const res = await apiFetch(`http://localhost:3000/verificar-cpf/${cpfValor}`);
+                        const dados = await res.json();
+
+                        if (dados.existe) {
+                            aviso.style.display = 'block';
+                            inputCpf.style.borderColor = '#dc3545';
+                            inputCpf.style.backgroundColor = '#f8d7da';
+                            if(botaoSalvar) botaoSalvar.disabled = true; 
+                        } else {
+                            aviso.style.display = 'none';
+                            inputCpf.style.borderColor = '#28a745';
+                            inputCpf.style.backgroundColor = 'white';
+                            if(botaoSalvar) botaoSalvar.disabled = false;
+                        }
+                    } catch (e) {
+                        console.error("Erro na verificação de CPF", e);
+                    }
+                } else {
+                    aviso.style.display = 'none';
+                    inputCpf.style.borderColor = '#ccc';
+                    inputCpf.style.backgroundColor = 'white';
+                    if(botaoSalvar) botaoSalvar.disabled = false;
+                }
+            }
+
+            function adicionarCrianca() {
+                const lista = document.getElementById('lista-criancas');
+                const idCrianca = Date.now(); 
+                const htmlCrianca = `
+                    <div class="crianca-item" id="crianca-${idCrianca}">
+                        <div style="flex: 3;">
+                            <label>Nome Completo: *</label>
+                            <input type="text" class="nome-crianca obrigatorio">
+                        </div>
+                        <div style="flex: 2;">
+                            <label>Nascimento: *</label>
+                            <input type="date" class="data-crianca obrigatorio">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Roupa:</label>
+                            <input type="text" class="roupa-crianca" placeholder="Ex: 10">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Sapato:</label>
+                            <input type="text" class="sapato-crianca" placeholder="Ex: 32">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Sexo: *</label>
+                            <select class="sexo-crianca obrigatorio">
+                                <option value="">--</option>
+                                <option value="M">M</option>
+                                <option value="F">F</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn-remover" onclick="removerCrianca(${idCrianca})">X</button>
+                    </div>
+                `;
+                lista.insertAdjacentHTML('beforeend', htmlCrianca);
+            }
                 
-        }
-             
+            function removerCrianca(id) { document.getElementById(`crianca-${id}`).remove(); }
 
-        function removerCrianca(id) { document.getElementById(`crianca-${id}`).remove(); }
+            function validarFormulario() {
+                let formValido = true;
+                let primeiroCampoComErro = null;
+                const camposObrigatorios = document.querySelectorAll('.obrigatorio');
 
-        function validarFormulario() {
-            let formValido = true;
-            let primeiroCampoComErro = null;
-            const camposObrigatorios = document.querySelectorAll('.obrigatorio');
+                camposObrigatorios.forEach(campo => {
+                    campo.classList.remove('erro-input');
+                    if (campo.value.trim() === '') {
+                        campo.classList.add('erro-input');
+                        formValido = false;
+                        if (!primeiroCampoComErro) primeiroCampoComErro = campo;
+                    }
+                });
 
-            camposObrigatorios.forEach(campo => {
-                campo.classList.remove('erro-input');
-                if (campo.value.trim() === '') {
-                    campo.classList.add('erro-input');
-                    formValido = false;
-                    if (!primeiroCampoComErro) primeiroCampoComErro = campo;
+                if (!formValido) {
+                    primeiroCampoComErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    primeiroCampoComErro.focus();
+                    alert('⚠️ Por favor, preencha os campos obrigatórios destacados em vermelho.');
+                }
+                return formValido;
+            }
+
+            document.getElementById('formOng').addEventListener('submit', async function(evento) {
+                evento.preventDefault();
+                if (!validarFormulario()) return; 
+
+                const dadosResponsavel = {
+                    nome_mae: document.getElementById('nome_mae').value,
+                    rg: document.getElementById('rg').value,
+                    cpf: document.getElementById('cpf').value,
+                    nis: document.getElementById('nis').value,
+                    titulo_eleitor: document.getElementById('titulo_eleitor').value,
+                    endereco: document.getElementById('endereco').value,
+                    fones: document.getElementById('fones').value,
+                    mae_trabalha: document.getElementById('mae_trabalha').value,
+                    pai_trabalha: document.getElementById('pai_trabalha').value,
+                    data_cadastro: document.getElementById('data_cadastro').value,
+                    outra_ong: document.getElementById('outra_ong').value,
+                };
+                
+                const listaHTML = document.querySelectorAll('.crianca-item');
+                const dadosMenores = [];
+                listaHTML.forEach(item => {
+                    dadosMenores.push({
+                        nome: item.querySelector('.nome-crianca').value,
+                        data: item.querySelector('.data-crianca').value,
+                        roupa: item.querySelector('.roupa-crianca').value,
+                        sapato: item.querySelector('.sapato-crianca').value,
+                        sexo: item.querySelector('.sexo-crianca').value.toUpperCase()
+                    });
+                });
+
+                const pacoteFinal = {
+                    responsavel: dadosResponsavel,
+                    menores: dadosMenores,
+                    voluntario_cadastro_id: idVoluntarioCadastro, 
+                    voluntario_responsavel_id: null 
+                };
+
+                try {
+                    // Agora usa apiFetch (com token)
+                    const resposta = await apiFetch(`${API_BASE_URL}/cadastro`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(pacoteFinal)
+                    });
+
+                    if (resposta.ok) {
+                        alert('🎉 Ficha completa da ONG cadastrada com sucesso!');
+                        document.getElementById('formOng').reset();
+                        document.getElementById('lista-criancas').innerHTML = ''; 
+                        document.querySelectorAll('.obrigatorio').forEach(c => c.classList.remove('erro-input'));
+                    } else { 
+                        alert('Ops! Erro ao salvar.'); 
+                    }
+                } catch (erro) { 
+                    alert('Erro de conexão. Servidor está ligado?'); 
                 }
             });
-
-            if (!formValido) {
-                primeiroCampoComErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                primeiroCampoComErro.focus();
-                alert('⚠️ Por favor, preencha os campos obrigatórios destacados em vermelho.');
-            }
-            return formValido;
-        }
-
-        document.getElementById('formOng').addEventListener('submit', async function(evento) {
-            evento.preventDefault();
-            if (!validarFormulario()) return; 
-
-            const dadosResponsavel = {
-                nome_mae: document.getElementById('nome_mae').value,
-                rg: document.getElementById('rg').value,
-                cpf: document.getElementById('cpf').value,
-                nis: document.getElementById('nis').value,
-                titulo_eleitor: document.getElementById('titulo_eleitor').value,
-                endereco: document.getElementById('endereco').value,
-                fones: document.getElementById('fones').value,
-                mae_trabalha: document.getElementById('mae_trabalha').value,
-                pai_trabalha: document.getElementById('pai_trabalha').value,
-                data_cadastro: document.getElementById('data_cadastro').value,
-                outra_ong: document.getElementById('outra_ong').value,
-            };
-            
-            const listaHTML = document.querySelectorAll('.crianca-item');
-            const dadosMenores = [];
-            listaHTML.forEach(item => {
-                dadosMenores.push({
-                    nome: item.querySelector('.nome-crianca').value,
-                    data: item.querySelector('.data-crianca').value,
-                    roupa: item.querySelector('.roupa-crianca').value,
-                    sapato: item.querySelector('.sapato-crianca').value,
-                    sexo: item.querySelector('.sexo-crianca').value.toUpperCase()
-                });
-            });
-
-            const pacoteFinal = {
-                responsavel: dadosResponsavel,
-                menores: dadosMenores,
-                voluntario_cadastro_id: idVoluntarioCadastro, 
-                voluntario_responsavel_id: null 
-            };
-
-            try {
-                const resposta = await fetch(`${API_BASE_URL}/cadastro`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(pacoteFinal)
-                });
-
-                if (resposta.ok) {
-                    alert('🎉 Ficha completa da ONG cadastrada com sucesso!');
-                    document.getElementById('formOng').reset();
-                    document.getElementById('lista-criancas').innerHTML = ''; 
-                    document.querySelectorAll('.obrigatorio').forEach(c => c.classList.remove('erro-input'));
-                } else { alert('Ops! Erro ao salvar.'); }
-            } catch (erro) { alert('Erro de conexão. Servidor está ligado?'); }
-        });
-    </script>
+        </script>
 </body>
 </html>

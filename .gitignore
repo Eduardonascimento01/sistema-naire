@@ -6,3 +6,5 @@ node_modules/
 
 # Pasta de uploads (opcional – se não quiser versionar as fotos)
 uploads/
+
+test-db.js

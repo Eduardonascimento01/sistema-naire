@@ -42,11 +42,38 @@
 
     <script>
         const API_BASE_URL = 'http://localhost:3000';
-        
+
+        // Verificação de acesso: apenas administradores podem cadastrar voluntários
+        const nivelAcesso = localStorage.getItem('nivelAcesso');
+        const token = localStorage.getItem('token');
+
+        if (!token || nivelAcesso !== 'admin') {
+            alert('Acesso restrito. Apenas administradores podem cadastrar voluntários.');
+            window.location.href = 'login.html';
+        }
+
+        // Função auxiliar para requisições autenticadas
+        async function apiFetch(url, options = {}) {
+            const token = localStorage.getItem('token');
+            if (!options.headers) options.headers = {};
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+            if (!options.headers['Content-Type'] && !(options.body instanceof FormData)) {
+                options.headers['Content-Type'] = 'application/json';
+            }
+            const resposta = await fetch(url, options);
+            if (resposta.status === 401) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+                throw new Error('Não autorizado');
+            }
+            return resposta;
+        }
+
         document.getElementById('formEquipe').addEventListener('submit', async function(evento) {
             evento.preventDefault();
 
-            // Pega os dados digitados na tela
             const dadosVoluntario = {
                 nome: document.getElementById('nome').value,
                 usuario: document.getElementById('usuario').value,
@@ -55,8 +82,8 @@
             };
 
             try {
-                // Envia para o nosso servidor Node.js
-                const resposta = await fetch(`${API_BASE_URL}/cadastrar-voluntario`, {
+                // Agora usa apiFetch (com token)
+                const resposta = await apiFetch(`${API_BASE_URL}/cadastrar-voluntario`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dadosVoluntario)
@@ -64,15 +91,15 @@
 
                 if (resposta.ok) {
                     alert('✅ Voluntário cadastrado com sucesso e senha criptografada!');
-                    document.getElementById('formEquipe').reset(); // Limpa a tela
+                    document.getElementById('formEquipe').reset();
                 } else {
                     const erro = await resposta.json();
                     alert('Ops: ' + erro.erro);
                 }
             } catch (erro) {
-                alert('Erro de conexão. O servidor (nodemon) está ligado?');
+                alert('Erro de conexão. O servidor está ligado?');
             }
         });
-    </script>
+        </script>
 </body>
 </html>

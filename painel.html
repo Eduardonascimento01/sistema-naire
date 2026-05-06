@@ -333,6 +333,26 @@
 
         if (!nomeLogado) { window.location.href = 'login.html'; }
 
+        // ========== FUNÇÃO AUXILIAR PARA REQUISIÇÕES AUTENTICADAS ==========
+        async function apiFetch(url, options = {}) {
+            const token = localStorage.getItem('token');
+            if (!options.headers) options.headers = {};
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+            // Não sobrescreve Content-Type se for FormData (upload de arquivos)
+            if (!options.headers['Content-Type'] && !(options.body instanceof FormData)) {
+                options.headers['Content-Type'] = 'application/json';
+            }
+            const resposta = await fetch(url, options);
+            if (resposta.status === 401) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+                throw new Error('Não autorizado');
+            }
+            return resposta;
+        }
+
         function montarMenu() {
             const menuContainer = document.getElementById('menu-dinamico');
             let html = '';
@@ -364,7 +384,7 @@
         async function carregarFamilias() {
             try {
                 const url = `${API_BASE_URL}/familias`;
-                const res = await fetch(url);
+                const res = await apiFetch(url);
                 const familias = await res.json();
                 
                 const tbody = document.getElementById('tabela-familias');
@@ -461,9 +481,9 @@
         }
 
         async function abrirFichaCompleta(idFamilia) {
-            const resposta = await fetch(`${API_BASE_URL}/familias/${idFamilia}`);
+            const resposta = await apiFetch(`${API_BASE_URL}/familias/${idFamilia}`);
             const dados = await resposta.json();
-            const resPadrinhos = await fetch(`${API_BASE_URL}/admin/padrinhos`);
+            const resPadrinhos = await apiFetch(`${API_BASE_URL}/admin/padrinhos`);
             const listaPadrinhos = await resPadrinhos.json();
             const isArquivada = dados.responsavel.status === 'inativo';
 
@@ -510,7 +530,7 @@
                     }
                     
                     const fotoC = c.foto_url ? c.foto_url : '/img/icon-crianca.png';
-                                      
+                                    
                     const idadeCalculada = calcularIdade(c.data_nascimento || c.data);
 
                     listaM.innerHTML += `
@@ -539,32 +559,72 @@
             document.getElementById('modalFicha').style.display = 'block';
         }
 
+        // --- UPLOAD DE FOTO (MÃE) ---
         async function mudarFotoMae(idFamilia) {
-            let novaFoto = prompt("Digite o nome exato do arquivo (ex: familia-silva.jpg) ou cole o link de uma imagem:");
-            if (novaFoto && novaFoto.trim() !== '') {
+            const inputArquivo = document.createElement('input');
+            inputArquivo.type = 'file';
+            inputArquivo.accept = 'image/png, image/jpeg, image/jpg'; 
+            
+            inputArquivo.onchange = async (evento) => {
+                const arquivo = evento.target.files[0];
+                if (!arquivo) return;
+
+                const formData = new FormData();
+                formData.append('foto', arquivo);
+
                 try {
-                    await fetch(`${API_BASE_URL}/familias/${idFamilia}/foto`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ foto_url: novaFoto })
+                    const resposta = await apiFetch(`${API_BASE_URL}/familias/${idFamilia}/upload-foto`, {
+                        method: 'POST',
+                        body: formData 
                     });
-                    document.getElementById('modal-foto-mae').src = novaFoto;
-                } catch (e) { alert("Erro ao salvar a foto!"); }
-            }
+
+                    const dados = await resposta.json();
+
+                    if (resposta.ok) {
+                        document.getElementById('modal-foto-mae').src = '/' + dados.foto_url;
+                    } else {
+                        alert(dados.erro);
+                    }
+                } catch (e) { 
+                    alert("Erro ao enviar a foto. O servidor está rodando?"); 
+                }
+            };
+
+            inputArquivo.click();
         }
 
+        // --- UPLOAD DE FOTO (CRIANÇA) ---
         async function mudarFotoCrianca(idCrianca) {
-            let novaFoto = prompt("Digite o nome exato do arquivo (ex: joaozinho.jpg) ou cole o link de uma imagem:");
-            if (novaFoto && novaFoto.trim() !== '') {
+            const inputArquivo = document.createElement('input');
+            inputArquivo.type = 'file';
+            inputArquivo.accept = 'image/png, image/jpeg, image/jpg'; 
+            
+            inputArquivo.onchange = async (evento) => {
+                const arquivo = evento.target.files[0];
+                if (!arquivo) return;
+
+                const formData = new FormData();
+                formData.append('foto', arquivo);
+
                 try {
-                    await fetch(`${API_BASE_URL}/menores/${idCrianca}/foto`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ foto_url: novaFoto })
+                    const resposta = await apiFetch(`${API_BASE_URL}/menores/${idCrianca}/upload-foto`, {
+                        method: 'POST',
+                        body: formData 
                     });
-                    document.getElementById(`modal-foto-crianca-${idCrianca}`).src = novaFoto;
-                } catch (e) { alert("Erro ao salvar a foto!"); }
-            }
+
+                    const dados = await resposta.json();
+
+                    if (resposta.ok) {
+                        document.getElementById(`modal-foto-crianca-${idCrianca}`).src = '/' + dados.foto_url;
+                    } else {
+                        alert(dados.erro);
+                    }
+                } catch (e) { 
+                    alert("Erro ao enviar a foto. O servidor está rodando?"); 
+                }
+            };
+
+            inputArquivo.click();
         }
 
         function abrirModalNovaCrianca(idFamilia) {
@@ -589,7 +649,7 @@
                 sexo: document.getElementById('nova-crianca-sexo').value
             };
 
-            const resposta = await fetch(`${API_BASE_URL}/familias/${idFamilia}/criancas`, {
+            const resposta = await apiFetch(`${API_BASE_URL}/familias/${idFamilia}/criancas`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(novaCrianca)
@@ -604,9 +664,9 @@
                 alert('Erro ao salvar a criança.');
             }
         });
-    
-       async function editarFamilia(id) {
-            const res = await fetch(`${API_BASE_URL}/familias/${id}`);
+
+        async function editarFamilia(id) {
+            const res = await apiFetch(`${API_BASE_URL}/familias/${id}`);
             const dados = await res.json();
             const r = dados.responsavel;
             const menores = dados.menores; 
@@ -659,7 +719,7 @@
                 mae_trabalha: document.getElementById('edit-mae-trab').value,
                 pai_trabalha: document.getElementById('edit-pai-trab').value
             };
-            await fetch(`${API_BASE_URL}/familias/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dadosMae) });
+            await apiFetch(`${API_BASE_URL}/familias/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dadosMae) });
 
             const idsCriancas = document.getElementsByClassName('edit-crianca-id');
             const roupas = document.getElementsByClassName('edit-crianca-roupa');
@@ -670,7 +730,7 @@
                 const cRoupa = roupas[i].value;
                 const cSapato = sapatos[i].value;
 
-                await fetch(`${API_BASE_URL}/menores/${cId}/tamanhos`, {
+                await apiFetch(`${API_BASE_URL}/menores/${cId}/tamanhos`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ tamanho_roupa: cRoupa, tamanho_sapato: cSapato })
@@ -684,13 +744,13 @@
 
         async function salvarMatch(idC, idF) {
             const pId = document.getElementById(`select-padrinho-${idC}`).value;
-            await fetch(`${API_BASE_URL}/vincular-padrinho`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ crianca_id: idC, padrinho_id: pId || null }) });
+            await apiFetch(`${API_BASE_URL}/vincular-padrinho`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ crianca_id: idC, padrinho_id: pId || null }) });
             alert('✅ Salvo!'); abrirFichaCompleta(idF); carregarFamilias();
         }
 
         async function apagarFamilia(id) {
             if (confirm('📦 Deseja ARQUIVAR esta família? \n\nEla sairá da lista principal, mas o histórico de doações e as crianças continuarão salvas no banco de dados da ONG.')) {
-                await fetch(`${API_BASE_URL}/familias/${id}?autor=${nomeLogado}`, { method: 'DELETE' });
+                await apiFetch(`${API_BASE_URL}/familias/${id}?autor=${nomeLogado}`, { method: 'DELETE' });
                 carregarFamilias();
             }
         }
@@ -710,18 +770,16 @@
             if (e.target == document.getElementById('modalEditar')) fecharModalEditar();
             if (e.target == document.getElementById('modalNovaCrianca')) fecharModalNovaCrianca();
         }
-              
+            
         // --- FUNÇÕES DO MODO DE ENTREGA ---
         let modoEntregaAtivo = null; 
         let familiasComEntrega = []; 
 
         async function carregarEventosDropdown() {
-            const res = await fetch(`${API_BASE_URL}/eventos`);
+            const res = await apiFetch(`${API_BASE_URL}/eventos`);
             const eventos = await res.json();
             const select = document.getElementById('select-evento');
-            eventos.forEach(e => {
-                select.innerHTML += `<option value="${e.id}">${e.nome}</option>`;
-            });
+            select.innerHTML += eventos.map(e => `<option value="${e.id}">${e.nome}</option>`).join('');
         }
 
         async function ativarModoEntrega() {
@@ -734,14 +792,14 @@
             }
 
             modoEntregaAtivo = eventoId;
-            const res = await fetch(`${API_BASE_URL}/eventos/${eventoId}/entregas`);
+            const res = await apiFetch(`${API_BASE_URL}/eventos/${eventoId}/entregas`);
             familiasComEntrega = await res.json(); 
             carregarFamilias();
         }
 
         async function registrarEntrega(idFamilia) {
             if (!modoEntregaAtivo) return;
-            const res = await fetch(`${API_BASE_URL}/entregas`, {
+            const res = await apiFetch(`${API_BASE_URL}/entregas`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ evento_id: modoEntregaAtivo, familia_id: idFamilia })
@@ -754,78 +812,10 @@
         }
         
         async function alternarValidacao(id) {
-            await fetch(`${API_BASE_URL}/admin/familias/${id}/validar`, { method: 'PUT' });
+            await apiFetch(`${API_BASE_URL}/admin/familias/${id}/validar`, { method: 'PUT' });
             carregarFamilias(); 
         }
-        
-        // --- AS DUAS FUNÇÕES V2.0 (UPLOAD DE ARQUIVO REAL) ---
-        async function mudarFotoMae(idFamilia) {
-            const inputArquivo = document.createElement('input');
-            inputArquivo.type = 'file';
-            inputArquivo.accept = 'image/png, image/jpeg, image/jpg'; 
             
-            inputArquivo.onchange = async (evento) => {
-                const arquivo = evento.target.files[0];
-                if (!arquivo) return;
-
-                const formData = new FormData();
-                formData.append('foto', arquivo);
-
-                try {
-                    const resposta = await fetch(`${API_BASE_URL}/familias/${idFamilia}/upload-foto`, {
-                        method: 'POST',
-                        body: formData 
-                    });
-
-                    const dados = await resposta.json();
-
-                    if (resposta.ok) {
-                        document.getElementById('modal-foto-mae').src = '/' + dados.foto_url;
-                    } else {
-                        alert(dados.erro);
-                    }
-                } catch (e) { 
-                    alert("Erro ao enviar a foto. O servidor está rodando?"); 
-                }
-            };
-
-            inputArquivo.click();
-        }
-
-        async function mudarFotoCrianca(idCrianca) {
-            const inputArquivo = document.createElement('input');
-            inputArquivo.type = 'file';
-            inputArquivo.accept = 'image/png, image/jpeg, image/jpg'; 
-            
-            inputArquivo.onchange = async (evento) => {
-                const arquivo = evento.target.files[0];
-                if (!arquivo) return;
-
-                const formData = new FormData();
-                formData.append('foto', arquivo);
-
-                try {
-                    const resposta = await fetch(`${API_BASE_URL}/menores/${idCrianca}/upload-foto`, {
-                        method: 'POST',
-                        body: formData 
-                    });
-
-                    const dados = await resposta.json();
-
-                    if (resposta.ok) {
-                        document.getElementById(`modal-foto-crianca-${idCrianca}`).src = '/' + dados.foto_url;
-                    } else {
-                        alert(dados.erro);
-                    }
-                } catch (e) { 
-                    alert("Erro ao enviar a foto. O servidor está rodando?"); 
-                }
-            };
-
-            inputArquivo.click();
-        }
-
-
         function toggleFiltros() {
             const painel = document.getElementById('painel-filtros');
             painel.style.display = (painel.style.display === 'flex' || painel.style.display === 'block') ? 'none' : 'flex';

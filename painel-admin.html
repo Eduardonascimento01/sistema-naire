@@ -314,11 +314,33 @@
 
    <script>
         const nivelAcesso = localStorage.getItem('nivelAcesso');
+        const token = localStorage.getItem('token');
         const API_BASE_URL = 'http://localhost:3000';
 
-        if (nivelAcesso !== 'admin') {
-            alert('⛔ Acesso negado!');
-            window.location.href = 'painel.html';
+        // Verificação dupla: token presente E nível admin
+        if (!token || nivelAcesso !== 'admin') {
+            alert('⛔ Acesso negado! Faça login como administrador.');
+            window.location.href = 'login.html';
+        }
+
+        // ========== FUNÇÃO AUXILIAR PARA REQUISIÇÕES AUTENTICADAS ==========
+        async function apiFetch(url, options = {}) {
+            const token = localStorage.getItem('token');
+            if (!options.headers) options.headers = {};
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+            // Não sobrescreve Content-Type se for FormData (upload de arquivos)
+            if (!options.headers['Content-Type'] && !(options.body instanceof FormData)) {
+                options.headers['Content-Type'] = 'application/json';
+            }
+            const resposta = await fetch(url, options);
+            if (resposta.status === 401) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+                throw new Error('Não autorizado');
+            }
+            return resposta;
         }
 
         // --- CALCULADORA DE IDADE ---
@@ -351,24 +373,19 @@
         }
 
         let listaVoluntarios = []; 
-        let listaPadrinhosData = []; // Armazena padrinhos para edição
+        let listaPadrinhosData = [];
         
         // --- FUNÇÃO PARA TROCAR AS SUB-ABAS DO ARQUIVO MORTO ---
         function abrirSubAba(evento, nomeSubAba) {
-            // 1. Esconde as duas tabelas
             const conteudos = document.getElementsByClassName('sub-conteudo');
             for (let i = 0; i < conteudos.length; i++) {
                 conteudos[i].style.display = 'none';
             }
-            
-            // 2. Tira a cor azul de todos os botões do menu interno
             const botoes = document.getElementsByClassName('sub-aba-btn');
             for (let i = 0; i < botoes.length; i++) {
                 botoes[i].style.color = '#777';
                 botoes[i].style.borderBottom = 'none';
             }
-            
-            // 3. Mostra a tabela certa e pinta o botão clicado de azul
             document.getElementById(nomeSubAba).style.display = 'block';
             evento.currentTarget.style.color = '#007bff';
             evento.currentTarget.style.borderBottom = '3px solid #007bff';
@@ -376,9 +393,9 @@
 
         async function prepararTelaDistribuicao() {
             try {
-                const resVoluntarios = await fetch(`${API_BASE_URL}/admin/voluntarios`);
+                const resVoluntarios = await apiFetch(`${API_BASE_URL}/admin/voluntarios`);
                 listaVoluntarios = await resVoluntarios.json();
-                const resFamilias = await fetch(`${API_BASE_URL}/familias`);
+                const resFamilias = await apiFetch(`${API_BASE_URL}/familias`);
                 const familias = await resFamilias.json();
                 montarTabelaDistribuicao(familias);
             } catch (erro) { alert('Erro ao buscar dados.'); }
@@ -388,7 +405,7 @@
             const corpoTabela = document.getElementById('tabela-distribuicao');
             corpoTabela.innerHTML = '';
             familias.forEach(async (familia) => {
-                const resDetalhe = await fetch(`${API_BASE_URL}/familias/${familia.id}`);
+                const resDetalhe = await apiFetch(`${API_BASE_URL}/familias/${familia.id}`);
                 const detalhe = await resDetalhe.json();
                 const vId = detalhe.responsavel.voluntario_responsavel_id;
                 let options = '<option value="">-- Sem voluntário --</option>';
@@ -399,7 +416,7 @@
 
         async function vincular(idFamilia) {
             const idV = document.getElementById(`select-vol-${idFamilia}`).value;
-            const res = await fetch(`${API_BASE_URL}/admin/vincular-voluntario`, {
+            const res = await apiFetch(`${API_BASE_URL}/admin/vincular-voluntario`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ familia_id: idFamilia, voluntario_responsavel_id: idV || null })
             });
@@ -408,7 +425,7 @@
 
         // --- ABA VOLUNTARIOS ---
         async function carregarVoluntariosAdmin() {
-            const res = await fetch(`${API_BASE_URL}/admin/voluntarios`);
+            const res = await apiFetch(`${API_BASE_URL}/admin/voluntarios`);
             const data = await res.json();
             const tbody = document.getElementById('tabela-voluntarios-admin');
             tbody.innerHTML = '';
@@ -427,7 +444,7 @@
 
         // --- ABA PADRINHOS ---
         async function carregarPadrinhos() {
-            const res = await fetch(`${API_BASE_URL}/admin/padrinhos`);
+            const res = await apiFetch(`${API_BASE_URL}/admin/padrinhos`);
             listaPadrinhosData = await res.json();
             const tbody = document.getElementById('tabela-padrinhos-admin');
             tbody.innerHTML = '';
@@ -443,7 +460,7 @@
             });
         }
 
-        // --- FUNCOES DE EDITAR (PREENCHER OS MODAIS) ---
+        // --- FUNÇÕES DE EDITAR (PREENCHER OS MODAIS) ---
         function prepararEdicaoPadrinho(id) {
             const padrinho = listaPadrinhosData.find(p => p.id === id);
             document.getElementById('padrinho_id_edit').value = padrinho.id;
@@ -454,7 +471,7 @@
             document.getElementById('nome_padrinho').value = padrinho.nome === 'Doador Anônimo' ? '' : padrinho.nome;
             document.getElementById('telefone_padrinho').value = padrinho.telefone !== 'Não informado' ? padrinho.telefone : '';
             if(padrinho.data_doacao) {
-                document.getElementById('data_doacao').value = padrinho.data_doacao.split('T')[0]; // Converte a data para o input HTML
+                document.getElementById('data_doacao').value = padrinho.data_doacao.split('T')[0];
             }
             document.getElementById('obs_padrinho').value = padrinho.observacoes || '';
             
@@ -468,14 +485,13 @@
             document.getElementById('usuario_voluntario').value = usuario;
             document.getElementById('nivel_voluntario').value = nivel;
             
-            // Esconder o campo de senha durante a edição para simplificar
             document.getElementById('div-senha-voluntario').style.display = 'none';
             document.getElementById('senha_voluntario').removeAttribute('required');
 
             document.getElementById('modalVoluntario').style.display = 'block';
         }
 
-        // --- SUBMITS DOS FORMULARIOS (CRIAR E ATUALIZAR) ---
+        // --- SUBMITS DOS FORMULÁRIOS (CRIAR E ATUALIZAR) ---
         document.getElementById('formPadrinho').addEventListener('submit', async function(e) {
             e.preventDefault();
             const idEdit = document.getElementById('padrinho_id_edit').value;
@@ -487,11 +503,10 @@
                 observacoes: document.getElementById('obs_padrinho').value
             };
             
-            // Se tem idEdit, é PUT (Atualizar). Se não, é POST (Criar)
             const url = idEdit ? `${API_BASE_URL}/admin/padrinhos/${idEdit}` : `${API_BASE_URL}/admin/padrinhos`;
             const method = idEdit ? 'PUT' : 'POST';
 
-            const res = await fetch(url, {
+            const res = await apiFetch(url, {
                 method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
             });
             if(res.ok) { alert('✅ Salvo com sucesso!'); fecharModalPadrinho(); carregarPadrinhos(); }
@@ -510,7 +525,7 @@
             const url = idEdit ? `${API_BASE_URL}/admin/voluntarios/${idEdit}` : `${API_BASE_URL}/cadastrar-voluntario`;
             const method = idEdit ? 'PUT' : 'POST';
 
-            const res = await fetch(url, {
+            const res = await apiFetch(url, {
                 method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
             });
             if(res.ok) { alert('✅ Sucesso!'); fecharModalVoluntario(); carregarVoluntariosAdmin(); }
@@ -519,14 +534,14 @@
         
         async function apagarVoluntario(id) {
             if(confirm('Tem certeza que deseja apagar?')) {
-                const res = await fetch(`${API_BASE_URL}/admin/voluntarios/${id}`, { method: 'DELETE' });
+                const res = await apiFetch(`${API_BASE_URL}/admin/voluntarios/${id}`, { method: 'DELETE' });
                 if(res.ok) { alert('Excluído!'); carregarVoluntariosAdmin(); }
             }
         }
 
         async function apagarPadrinho(id) {
             if(confirm('Tem certeza que deseja apagar?')) {
-                const res = await fetch(`${API_BASE_URL}/admin/padrinhos/${id}`, { method: 'DELETE' });
+                const res = await apiFetch(`${API_BASE_URL}/admin/padrinhos/${id}`, { method: 'DELETE' });
                 if(res.ok) { alert('Excluído!'); carregarPadrinhos(); }
             }
         }
@@ -544,7 +559,7 @@
         }
         function abrirModalNovoVoluntario() { 
             document.getElementById('titulo-modal-voluntario').innerText = 'Novo Voluntário';
-            document.getElementById('div-senha-voluntario').style.display = 'block'; // Mostra a senha para novos
+            document.getElementById('div-senha-voluntario').style.display = 'block';
             document.getElementById('senha_voluntario').setAttribute('required', 'true');
             document.getElementById('modalVoluntario').style.display = 'block'; 
         }
@@ -562,7 +577,7 @@
         let eventosGlobais = []; 
 
         async function carregarEventos() {
-            const res = await fetch(`${API_BASE_URL}/eventos`);
+            const res = await apiFetch(`${API_BASE_URL}/eventos`);
             eventosGlobais = await res.json();
             const tbody = document.getElementById('tabela-eventos-admin');
             tbody.innerHTML = '';
@@ -587,11 +602,10 @@
         function abrirModalEvento() { document.getElementById('modalEvento').style.display = 'block'; }
         function fecharModalEvento() { document.getElementById('modalEvento').style.display = 'none'; document.getElementById('formEvento').reset(); }
 
-        // Salvando NOVO evento
         document.getElementById('formEvento').addEventListener('submit', async function(e) {
             e.preventDefault();
             const pacote = { nome: document.getElementById('nome_evento').value, data_evento: document.getElementById('data_evento').value };
-            const res = await fetch(`${API_BASE_URL}/admin/eventos`, {
+            const res = await apiFetch(`${API_BASE_URL}/admin/eventos`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
             });
             if(res.ok) { alert('✅ Campanha salva!'); fecharModalEvento(); carregarEventos(); }
@@ -601,7 +615,7 @@
         function abrirModalEditarEvento(id) {
             const e = eventosGlobais.find(ev => ev.id === id);
             let dataISO = e.data_evento.split('T')[0]; 
-           
+        
             document.getElementById('edit_evento_id').value = id;
             document.getElementById('edit_nome_evento').value = e.nome;
             document.getElementById('edit_data_evento').value = dataISO;
@@ -615,47 +629,43 @@
             const id = document.getElementById('edit_evento_id').value;
             const pacote = { nome: document.getElementById('edit_nome_evento').value, data_evento: document.getElementById('edit_data_evento').value };
             
-            const res = await fetch(`${API_BASE_URL}/admin/eventos/${id}`, {
+            const res = await apiFetch(`${API_BASE_URL}/admin/eventos/${id}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pacote)
             });
             if(res.ok) { alert('✅ Campanha atualizada!'); fecharModalEditarEvento(); carregarEventos(); }
         });
 
-       // Manda para o arquivo (Lixeira)
         async function apagarEvento(id) {
             if(confirm('📦 Deseja ARQUIVAR esta campanha? Ela sairá do painel principal, mas poderá ser restaurada depois.')) {
-                const res = await fetch(`${API_BASE_URL}/admin/eventos/${id}/arquivar`, { method: 'PUT' });
+                const res = await apiFetch(`${API_BASE_URL}/admin/eventos/${id}/arquivar`, { method: 'PUT' });
                 if(res.ok) { 
                     alert('Campanha arquivada!'); 
-                    carregarEventos(); // Atualiza a tabela na hora
+                    carregarEventos();
                 }
             }
         }
 
-        // Apaga para sempre (Fica dentro de uma aba de lixeira ou modal)
         async function excluirEventoDefinitivo(id) {
             if(confirm('🚨 ALERTA VERMELHO 🚨\n\nVocê está prestes a EXCLUIR DEFINITIVAMENTE esta campanha.\nTodas as fotos e registros de entrega dela serão perdidos para sempre.\n\nTem certeza absoluta?')) {
-                const res = await fetch(`${API_BASE_URL}/admin/eventos/${id}/excluir-definitivo`, { method: 'DELETE' });
+                const res = await apiFetch(`${API_BASE_URL}/admin/eventos/${id}/excluir-definitivo`, { method: 'DELETE' });
                 if(res.ok) { 
                     alert('🗑️ Campanha desintegrada com sucesso!'); 
-                    // Aqui você chama a função que recarrega a tabela da lixeira
                 }
             }
         }
 
-        // Restaura para o painel
         async function restaurarEvento(id) {
             if(confirm('Deseja devolver esta campanha para o painel principal?')) {
-                const res = await fetch(`${API_BASE_URL}/admin/eventos/${id}/restaurar`, { method: 'PUT' });
+                const res = await apiFetch(`${API_BASE_URL}/admin/eventos/${id}/restaurar`, { method: 'PUT' });
                 if(res.ok) { 
                     alert('✅ Campanha restaurada!'); 
-                    // Recarrega a tabela da lixeira e do painel principal
                 }
             }
         }
+
         // --- FUNÇÕES DE ARQUIVO E RESTAURAÇÃO ---
         async function carregarArquivadas() {
-            const resFam = await fetch(`${API_BASE_URL}/admin/arquivadas`);
+            const resFam = await apiFetch(`${API_BASE_URL}/admin/arquivadas`);
             const familias = await resFam.json();
             const tbodyFam = document.getElementById('tabela-arquivadas');
             tbodyFam.innerHTML = '';
@@ -671,8 +681,7 @@
                     </tr>`;
             });
 
-            // 2. Carrega Eventos Arquivados 
-            const resEv = await fetch(`${API_BASE_URL}/admin/eventos-arquivados`);
+            const resEv = await apiFetch(`${API_BASE_URL}/admin/eventos-arquivados`);
             const eventos = await resEv.json();
             const tbodyEv = document.getElementById('tabela-eventos-arquivados');
             tbodyEv.innerHTML = '';
@@ -697,14 +706,14 @@
 
         async function restaurarFamilia(id) {
             if(confirm('Deseja devolver esta família para o painel principal ativo?')) {
-                const res = await fetch(`${API_BASE_URL}/admin/familias/${id}/restaurar`, { method: 'PUT' });
+                const res = await apiFetch(`${API_BASE_URL}/admin/familias/${id}/restaurar`, { method: 'PUT' });
                 if(res.ok) { alert('✅ Família restaurada!'); carregarArquivadas(); }
             }
         }
+
         async function verDetalhesArquivada(id) {
             try {
-                // Como a nossa rota do banco de dados busca pelo ID, ela consegue achar até as inativas!
-                const res = await fetch(`${API_BASE_URL}/familias/${id}`);
+                const res = await apiFetch(`${API_BASE_URL}/familias/${id}`);
                 const dados = await res.json();
                 const fotoMae = dados.responsavel.foto_url ? dados.responsavel.foto_url : 'icon-mae.png';
                 
@@ -724,7 +733,6 @@
                     dados.menores.forEach(c => {
                         const fotoC = c.foto_url ? c.foto_url : 'icon-crianca.png';
                         
-                        // Busca a data e chama a calculadora
                         const dataDaCrianca = c.data_nascimento || c.data || c.nascimento || c.data_nasc;
                         let textoIdade = "🎂 Sem data";
                         if (dataDaCrianca && dataDaCrianca !== "0000-00-00" && dataDaCrianca.trim() !== "") {
@@ -756,7 +764,6 @@
         }
         
         // --- LÓGICA DA GALERIA DE FOTOS ---
-
         function abrirGaleria(id, nome) {
             document.getElementById('galeria-evento-id').value = id;
             document.getElementById('titulo-galeria').innerText = `📸 Galeria: ${nome}`;
@@ -773,7 +780,7 @@
             mural.innerHTML = '<p>Carregando fotos...</p>';
 
             try {
-                const res = await fetch(`${API_BASE_URL}/admin/eventos/${idEvento}/fotos`);
+                const res = await apiFetch(`${API_BASE_URL}/admin/eventos/${idEvento}/fotos`);
                 const fotos = await res.json();
 
                 if (fotos.length === 0) {
@@ -781,9 +788,8 @@
                     return;
                 }
 
-                mural.innerHTML = ''; // Limpa o mural
+                mural.innerHTML = '';
                 fotos.forEach(f => {
-                    // Desenha o quadrado da foto (com a barra / na frente do link para achar a pasta uploads)
                     mural.innerHTML += `
                         <div style="border: 3px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; width: 220px; height: 180px; background: #eee;">
                             <img src="/${f.foto_url}" style="width: 100%; height: 100%; object-fit: cover;">
@@ -795,12 +801,10 @@
             }
         }
 
-        // Quando clica no botão verde, "finge" um clique no input invisível
         function clicarInputFoto() {
             document.getElementById('input-foto-evento').click();
         }
 
-        // O que acontece quando o usuário escolhe a foto no computador
         document.getElementById('input-foto-evento').addEventListener('change', async (evento) => {
             const arquivo = evento.target.files[0];
             if (!arquivo) return;
@@ -810,16 +814,14 @@
             formData.append('foto', arquivo);
 
             try {
-                // Mostra um aviso de que está carregando
                 document.getElementById('mural-fotos').innerHTML = '<p>Fazendo upload da imagem, aguarde...</p>';
 
-                const res = await fetch(`${API_BASE_URL}/admin/eventos/${idEvento}/fotos`, {
+                const res = await apiFetch(`${API_BASE_URL}/admin/eventos/${idEvento}/fotos`, {
                     method: 'POST',
                     body: formData
                 });
 
                 if (res.ok) {
-                    // Limpa o input e recarrega o mural na mesma hora!
                     document.getElementById('input-foto-evento').value = '';
                     carregarFotosDoMural(idEvento);
                 } else {
@@ -832,7 +834,7 @@
 
         async function carregarLogs() {
             try {
-                const res = await fetch(`${API_BASE_URL}/admin/logs`);
+                const res = await apiFetch(`${API_BASE_URL}/admin/logs`);
                 const logs = await res.json();
                 const tbody = document.getElementById('tabela-logs');
                 tbody.innerHTML = '';
@@ -843,7 +845,6 @@
                 }
 
                 logs.forEach(log => {
-                   
                     const dataFormatada = new Date(log.data_hora).toLocaleString('pt-BR');
                     
                     tbody.innerHTML += `
